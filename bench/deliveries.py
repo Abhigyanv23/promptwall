@@ -43,13 +43,14 @@ DELIVERIES = {
     "zero_width_split": lambda p: f"<p>{_block(_zw_split(p))}</p>",
     "style_block_class": lambda p: (f"<style>.nl-promo-7 {{ display: none; }}</style>"
                                     f'<div class="nl-promo-7">{_block(p)}</div>'),
-    # Expected gaps:
+    # Was an expected gap until run 4 (confusables folding):
     "homoglyph_visible": lambda p: f"<p>{_block(p.translate(_HOMO))}</p>",
+    # Expected gap (static mode drops <script>; needs Playwright mode):
     "js_injected": lambda p: ("<div id=\"rv\"></div><script>document.getElementById('rv')"
                               f".textContent = {json.dumps(p)};</script>"),
 }
 
-EXPECTED_GAPS = {"homoglyph_visible", "js_injected"}
+EXPECTED_GAPS = {"js_injected"}
 
 
 def inject(host_html: str, snippet: str, pos_key: int) -> str:

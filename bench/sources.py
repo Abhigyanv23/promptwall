@@ -65,7 +65,7 @@ class Goal:
 def _injecagent(src: Path) -> list[Goal]:
     out = []
     for f in ("attacker_cases_dh.jsonl", "attacker_cases_ds.jsonl"):
-        for line in (src / "InjecAgent/data" / f).read_text().splitlines():
+        for line in (src / "InjecAgent/data" / f).read_text(encoding="utf-8").splitlines():
             if line.strip():
                 out.append(Goal("injecagent", json.loads(line)["Attacker Instruction"]))
     return out
@@ -78,7 +78,7 @@ def _agentdojo(src: Path) -> list[Goal]:
     out = []
     base = src / "agentdojo/src/agentdojo/default_suites/v1"
     for f in sorted(base.glob("*/injection_tasks.py")):
-        code = f.read_text()
+        code = f.read_text(encoding="utf-8")
         consts = dict(re.findall(r'^\s*(_[A-Z_]+)\s*=\s*"([^"]*)"', code, re.M))
         for m in re.finditer(r'GOAL\s*=\s*f?("""(.*?)"""|"(.*?)")', code, re.S):
             g = m.group(2) if m.group(2) is not None else m.group(3)
@@ -94,7 +94,7 @@ def _agentdojo(src: Path) -> list[Goal]:
 
 
 def _bipia(src: Path, split: str) -> list[Goal]:
-    d = json.loads((src / f"BIPIA/benchmark/text_attack_{split}.json").read_text())
+    d = json.loads((src / f"BIPIA/benchmark/text_attack_{split}.json").read_text(encoding="utf-8"))
     return [Goal("bipia", t) for v in d.values() for t in v]
 
 
@@ -103,7 +103,7 @@ def _tensortrust(src: Path) -> list[Goal]:
     base = src / "tensor-trust-data/benchmarks"
     for f in ("hijacking-robustness/v1/hijacking_robustness_dataset.jsonl",
               "extraction-robustness/v1/extraction_robustness_dataset.jsonl"):
-        for line in (base / f).read_text().splitlines():
+        for line in (base / f).read_text(encoding="utf-8").splitlines():
             a = json.loads(line)["attack"].strip()
             words = re.findall(r"[A-Za-z]{2,}", a)
             if len(words) < 5 or not (20 <= len(a) <= 2000):
@@ -152,7 +152,7 @@ def bipia_contexts(split: str, src: Path = DEFAULT_SRC) -> list[tuple[str, str]]
     """Benign emails and tables: (kind, text)."""
     out = []
     for kind in ("email", "table"):
-        for line in (src / f"BIPIA/benchmark/{kind}/{split}.jsonl").read_text().splitlines():
+        for line in (src / f"BIPIA/benchmark/{kind}/{split}.jsonl").read_text(encoding="utf-8").splitlines():
             if line.strip():
                 out.append((kind, json.loads(line)["context"]))
     return out
@@ -164,6 +164,6 @@ def injecagent_tool_responses(src: Path = DEFAULT_SRC) -> list[tuple[str, str]]:
     out = []
     for setting in ("base", "enhanced"):
         for kind in ("dh", "ds"):
-            for c in json.loads((src / f"InjecAgent/data/test_cases_{kind}_{setting}.json").read_text()):
+            for c in json.loads((src / f"InjecAgent/data/test_cases_{kind}_{setting}.json").read_text(encoding="utf-8")):
                 out.append((setting, c["Tool Response"]))
     return out

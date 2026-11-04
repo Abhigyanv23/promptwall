@@ -20,8 +20,6 @@ from __future__ import annotations
 
 import csv
 import json
-import random
-import re
 import statistics
 import sys
 import time
@@ -32,15 +30,14 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import sources  # noqa: E402
-from deliveries import _HOMO, DELIVERIES, EXPECTED_GAPS, inject  # noqa: E402
-from hard_negatives import HARD_NEGATIVES  # noqa: E402
+import cases  # noqa: E402
+from cases import squash  # noqa: E402
+from deliveries import EXPECTED_GAPS  # noqa: E402
 from promptwall.models import ScanResult  # noqa: E402
 from promptwall.sanitize import sanitize_text  # noqa: E402
 from promptwall.scanner import Scanner, normalize  # noqa: E402
 
 OUT = Path(__file__).parent / "results"
-RNG = random.Random(7)
 DETECTORS = ["keyword_baseline", "rules", "ml", "combined"]
 REACH = ["no_defence", "keyword_baseline", "promptwall"]
 
@@ -48,10 +45,6 @@ KEYWORDS = ["ignore previous instructions", "ignore all previous instructions",
             "ignore your previous instructions", "disregard previous instructions",
             "disregard all previous", "ignore the above", "system prompt", "you are now",
             "developer mode", "jailbreak"]
-
-
-def squash(s: str) -> str:
-    return " ".join(normalize(s).lower().split())
 
 
 def keyword_hit(text: str) -> bool:
@@ -119,11 +112,13 @@ class Tally:
 
 
 def main():
+    # Windows consoles default to cp1252, which cannot print the report's symbols.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     OUT.mkdir(exist_ok=True)
     scanner = Scanner()
     assert scanner.classifier is not None, "train the classifier first"
-    test_pages = sources.readability_pages()["test"]
-    goals = sources.test_goals()
+    test_pages = cases.benign_pages()
     latencies: list[float] = []
     misses: list[dict] = []
 
@@ -143,7 +138,7 @@ def main():
                                            for f in res.findings if f.severity.value != "low"
                                            or f.rule_id != "hidden.content_present"]})
     hard = Tally()
-    for name, html in HARD_NEGATIVES.items():
+    for name, html in cases.hard_negative_pages():
         v, *_ = scan(scanner, html, True)
         hard.add("hand-written hard negatives", v)
         if v["combined"] != "allow":
@@ -151,61 +146,50 @@ def main():
 
     # ---------------- A. attack pages ----------------
     by_delivery, by_wrapper, by_source = Tally(), Tally(), Tally()
-    deliveries = list(DELIVERIES)
-    k = 0
-    for g in goals:
-        for w in sources.WRAPPERS:
-            payload = sources.wrap(w, g.text)
-            for _ in range(2):
-                dname = deliveries[k % len(deliveries)]
-                hname, host = clean_hosts[k % len(clean_hosts)]
-                page = inject(host, DELIVERIES[dname](payload), k)
-                v, ms, raw, safe, _ = scan(scanner, page, True)
-                latencies.append(ms)
-                # Marker = first 50 chars of the goal, as the agent would see it.
-                goal_seen = g.text.translate(_HOMO) if dname == "homoglyph_visible" else g.text
-                marker = squash(goal_seen)[:50]
-                in_raw = marker in squash(raw)
-                reached = {"no_defence": in_raw,
-                           "keyword_baseline": in_raw and v["keyword_baseline"] == "allow",
-                           "promptwall": marker in squash(safe)}
-                by_delivery.add(dname, v, reached)
-                by_wrapper.add(("seen: " if w in sources.TRAIN_WRAPPERS else "held-out: ") + w,
-                               v, reached)
-                by_source.add(f"{g.source} ({'plain goal' if w == 'plain' else 'wrapped'})",
-                              v, reached)
-                if v["combined"] == "allow":
-                    misses.append({"set": "attack_page", "delivery": dname, "wrapper": w,
-                                   "goal_source": g.source, "host": hname,
-                                   "reached_llm": reached["promptwall"],
-                                   "payload": " ".join(payload.split())[:300]})
-                k += 1
-    n_attack_pages = k
+    tallies = {"attack pages by delivery": by_delivery, "attack pages by wrapper": by_wrapper,
+               "attack pages by goal source": by_source}
+    per_case: list[dict] = []
+    n_attack_pages = 0
+    for i, c in enumerate(cases.attack_pages(clean_hosts)):
+        v, ms, raw, safe, _ = scan(scanner, c.page, True)
+        latencies.append(ms)
+        in_raw = c.marker in squash(raw)
+        reached = {"no_defence": in_raw,
+                   "keyword_baseline": in_raw and v["keyword_baseline"] == "allow",
+                   "promptwall": c.marker in squash(safe)}
+        for table, group in c.groups.items():
+            tallies[table].add(group, v, reached)
+        per_case.append({"i": i, "host": c.host, "groups": c.groups,
+                         "flagged": v["combined"] != "allow", "blocked": v["combined"] == "block",
+                         "reached": reached["promptwall"], "reached_no_defence": in_raw})
+        if v["combined"] == "allow":
+            misses.append({"set": "attack_page", "delivery": c.delivery, "wrapper": c.wrapper,
+                           "goal_source": c.goal_source, "host": c.host,
+                           "reached_llm": reached["promptwall"],
+                           "payload": " ".join(c.payload.split())[:300]})
+        n_attack_pages += 1
 
     # ---------------- C. text-level (tool outputs, direct attacks) ----------------
     text_atk, text_ben = Tally(), Tally()
-    resp = sources.injecagent_tool_responses()
-    for setting in ("base", "enhanced"):
-        pool = [t for s, t in resp if s == setting]
-        for t in RNG.sample(pool, 300):
-            v, *_ = scan(scanner, t, False)
-            text_atk.add(f"InjecAgent tool output ({setting})", v)
-            if v["combined"] == "allow":
-                misses.append({"set": f"injecagent_{setting}", "payload": t[:300]})
-    for g in sources.test_tensortrust():
-        v, *_ = scan(scanner, g.text, False)
-        text_atk.add("Tensor Trust direct attacks (held-out half)", v)
-        if v["combined"] == "allow":
-            misses.append({"set": "tensortrust", "payload": " ".join(g.text.split())[:300]})
-    for kind, t in sources.bipia_contexts("test"):
+    for i, (group, t) in enumerate(cases.text_attacks()):
         v, *_ = scan(scanner, t, False)
-        text_ben.add(f"BIPIA {kind}s (benign)", v)
+        text_atk.add(group, v)
+        per_case.append({"i": f"text-{i}", "groups": {"text-level attacks": group},
+                         "flagged": v["combined"] != "allow", "blocked": v["combined"] == "block"})
+        if v["combined"] == "allow":
+            misses.append({"set": group, "payload": " ".join(t.split())[:300]})
+    for i, (group, t) in enumerate(cases.text_benign()):
+        v, *_ = scan(scanner, t, False)
+        text_ben.add(group, v)
+        per_case.append({"i": f"benign-text-{i}", "groups": {"benign text": group},
+                         "flagged": v["combined"] != "allow", "blocked": v["combined"] == "block"})
 
     # ---------------- write results ----------------
     lat = sorted(latencies)
     summary = {
         "n_attack_pages": n_attack_pages, "n_benign_pages": len(test_pages),
         "n_clean_hosts": len(clean_hosts),
+        "clean_hosts": [name for name, _ in clean_hosts],
         "latency_ms": {"p50": round(statistics.median(lat), 1),
                        "p95": round(lat[int(0.95 * len(lat))], 1),
                        "max": round(lat[-1], 1)},
@@ -218,13 +202,15 @@ def main():
     data = {"summary": summary,
             "tables": {t: list(tab.rows()) for t, tab in tables.items()},
             "false_positives": false_pos}
-    (OUT / "results.json").write_text(json.dumps(data, indent=2))
-    with (OUT / "misses.csv").open("w", newline="") as fh:
+    (OUT / "results.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+    # One line per case: lets baselines.py compare on exactly the same subset.
+    (OUT / "per_case.jsonl").write_text("\n".join(json.dumps(r) for r in per_case) + "\n", encoding="utf-8")
+    with (OUT / "misses.csv").open("w", newline="", encoding="utf-8") as fh:
         wr = csv.DictWriter(fh, fieldnames=["set", "delivery", "wrapper", "goal_source",
                                             "host", "reached_llm", "payload"])
         wr.writeheader()
         wr.writerows(misses)
-    (OUT / "RESULTS.md").write_text(render_md(data))
+    (OUT / "RESULTS.md").write_text(render_md(data), encoding="utf-8")
     print(render_md(data))
 
 

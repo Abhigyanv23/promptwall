@@ -27,14 +27,14 @@ class Sanitized:
 
 
 def _flagged(scanner, text: str) -> bool:
-    from .scanner import normalize
+    from .scanner import normalize_for_matching
 
     for f in scanner.scan_text(text, "sanitize"):
         if f.severity != Severity.LOW:
             return True
     clf = scanner.classifier
     if clf is not None:
-        probs = clf.predict_proba([normalize(text)])
+        probs = clf.predict_proba([normalize_for_matching(text)])
         if probs and probs[0] >= clf.threshold:
             return True
     return False

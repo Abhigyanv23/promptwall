@@ -7,6 +7,7 @@ import unicodedata
 from dataclasses import replace
 
 from . import unicode_checks as uc
+from .confusables import fold_mixed_script
 from .extract import extract_html
 from .models import Finding, ScanResult, Severity
 from .patterns import RULES, Rule
@@ -28,9 +29,22 @@ _ESCALATE_HIDDEN = {
 _AUTO = object()
 
 
+# Several mixed-script words (Latin + Cyrillic/Greek inside one word) is the
+# signature of a homoglyph attack; one or two can be a brand name or a typo.
+MIXED_SCRIPT_THRESHOLD = 3
+
+
 def normalize(text: str) -> str:
-    """Strip invisible chars, then NFKC (folds full-width / compatibility letters)."""
+    """Strip invisible chars, then NFKC (folds full-width / compatibility letters).
+
+    This is also what the LLM receives, so it must not change real text.
+    """
     return unicodedata.normalize("NFKC", uc.strip_invisible(text))
+
+
+def normalize_for_matching(text: str) -> str:
+    """normalize() + homoglyph folding. For detection only - never shown to the LLM."""
+    return fold_mixed_script(normalize(text))[0]
 
 
 def _snippet(text: str, m: re.Match, pad: int = 40) -> str:
@@ -87,7 +101,10 @@ class Scanner:
             findings.append(Finding("unicode.zero_width_flood", "obfuscation", Severity.LOW,
                                     location, f"{counts['zero_width']} zero-width char(s)"))
 
-        clean = normalize(text)
+        clean, mixed = fold_mixed_script(normalize(text))
+        if mixed >= MIXED_SCRIPT_THRESHOLD:
+            findings.append(Finding("unicode.mixed_script_words", "obfuscation", Severity.MEDIUM,
+                                    location, f"{mixed} word(s) mixing Latin with Cyrillic/Greek"))
         for rule in self.rules:
             m = rule.pattern.search(clean)
             if m:
@@ -114,7 +131,7 @@ class Scanner:
             return []
         clf = self.classifier
         out = []
-        scored = clf.score_many([normalize(t) for t, _ in items])
+        scored = clf.score_many([normalize_for_matching(t) for t, _ in items])
         for (_, loc), chunks in zip(items, scored):
             for cs in chunks:
                 if cs.prob < clf.threshold:
