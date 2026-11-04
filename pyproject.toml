@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "promptwall"
+version = "0.2.0"
+description = "Prompt-injection firewall for browsing agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["beautifulsoup4>=4.12"]
+
+[project.optional-dependencies]
+ml = ["scikit-learn>=1.9", "joblib>=1.3"]
+dev = ["pytest>=8", "scikit-learn>=1.9", "joblib>=1.3"]
+
+[project.scripts]
+promptwall = "promptwall.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["promptwall*"]
+
+[tool.setuptools.package-data]
+promptwall = ["data/*.joblib"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
