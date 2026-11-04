@@ -130,16 +130,38 @@ for both detectors (709 skipped); the rest are compared case for case.
 catches fewer attacks. A higher threshold would lower its false positives but could only lower its
 detection too, so promptwall comes out ahead on both at once, not just at one operating point.
 Hidden attacks are where the gap is widest: a string classifier sees hidden text as ordinary text,
-while promptwall drops it.
+while promptwall drops it. (The window-size check below shows how much of the gap is structural.)
 
 **Where ProtectAI wins.** Short, direct attack text: 98% on Tensor Trust, and 64% on plain requests
 inside tool outputs, a category promptwall misses entirely (0%). But it also flags 62% of benign
 emails, so part of that sensitivity is a general readiness to flag imperative text.
 
-**Caveats.** Its model card says it is English-only and the project is archived; some of the 35%
-benign-page false positives may be non-English pages. The default threshold was not tuned for web
-pages. 512-token windows may dilute a short payload with surrounding page text; `--window 128` is
-a sensitivity check that has not been run yet.
+**Sensitivity check: 128-token windows.** 512-token windows might dilute a short payload with
+surrounding page text, so the run was repeated with 128-token windows
+([`BASELINE_protectai_w128.md`](bench/results/BASELINE_protectai_w128.md)). ProtectAI now flags 38
+of the 60 hosts on its own, leaving 708 attack pages to compare:
+
+| | ProtectAI, 128-token windows | **promptwall** (same pages) |
+|---|---|---|
+| Benign real pages flagged (n=63) | 62% | **5%** |
+| Benign emails / tables flagged | 68% / 61% | **0% / 0%** |
+| Attack pages flagged (n=708) | 31% | **63%** |
+| Plain visible attacks flagged (paragraph + zero-width, n=131) | 52% | 52% |
+| Attack text reaching the LLM | 32% | **7%** |
+| Plain requests in tool output (n=300) | **72%** | 0% |
+| Latency per page, p50 | 360 ms | **52 ms** |
+
+Smaller windows double ProtectAI's detection but nearly double its false positives, so the overall
+result holds. The finer point matters more: **on plain visible text, the two detect attacks at the
+same rate (52%)**. promptwall's lead does not come from a smarter classifier. It comes from dropping
+hidden text structurally, folding homoglyphs, and a threshold calibrated on real pages (5% false
+positives versus 62%). A neural classifier fine-tuned and calibrated on web pages is the obvious
+way to improve visible-text detection, which is why it is next on the roadmap.
+
+**Caveats.** ProtectAI's model card says it is English-only and the project is archived; some of
+its benign-page false positives may be non-English pages. Its default threshold was not tuned for
+web pages. In the 128-token run only 22 of 60 hosts remain, about 65 pages per technique, so those
+figures are less precise.
 
 ```bash
 pip install transformers torch sentencepiece
@@ -224,8 +246,9 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 - [x] Baseline script for Prompt Guard 2 / ProtectAI DeBERTa on identical cases
 - [x] ProtectAI DeBERTa v2 baseline
 - [ ] Prompt Guard 2 baseline (gated model; access requested separately)
-- [ ] ProtectAI with 128-token windows (sensitivity check)
-- [ ] Replace TF-IDF with a fine-tuned small transformer to fix paraphrase recall
+- [x] ProtectAI with 128-token windows (sensitivity check)
+- [ ] Replace TF-IDF with a small transformer fine-tuned and calibrated on web-page chunks, to lift
+      visible-text and paraphrase recall without ProtectAI's false-positive rate
 - [ ] Playwright mode: computed styles, JS-rendered text, external CSS
 - [ ] PDF/DOCX extraction; HTTP proxy mode
 - [ ] Fresh, independently collected benign set for FPR
