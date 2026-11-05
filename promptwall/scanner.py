@@ -67,12 +67,15 @@ class Scanner:
 
     classifier: "auto" (default) loads the bundled model if scikit-learn is
     installed; None disables ML; or pass an InjectionClassifier instance.
+    renderer: a promptwall.render.Renderer to extract text from a real browser
+    (catches external-CSS hiding and JavaScript-added text); None = static mode.
     """
 
     def __init__(self, rules: list[Rule] | None = None, zero_width_threshold: int = 10,
-                 classifier=_AUTO):
+                 classifier=_AUTO, renderer=None):
         self.rules = rules if rules is not None else RULES
         self.zero_width_threshold = zero_width_threshold
+        self.renderer = renderer   # promptwall.render.Renderer for rendered mode, or None
         if classifier is _AUTO:
             from .ml import InjectionClassifier
             classifier = InjectionClassifier.load_default()
@@ -149,7 +152,27 @@ class Scanner:
     # ---------------- entry points ----------------
 
     def scan_html(self, html: str) -> ScanResult:
-        ext = extract_html(html)
+        """Scan HTML. Uses the browser when a renderer is set, else static extraction."""
+        if self.renderer is None:
+            return self.scan_extraction(extract_html(html))
+        from .render import RenderError
+        try:
+            return self.scan_extraction(self.renderer.extract(html))
+        except RenderError as e:
+            # Never let a page through unscanned: fall back to static extraction.
+            result = self.scan_extraction(extract_html(html))
+            result.findings.append(Finding("render.failed", "operational", Severity.LOW,
+                                           "page", str(e)[:200]))
+            return result
+
+    def scan_url(self, url: str) -> ScanResult:
+        """Render a live URL (needs a renderer with allow_network=True)."""
+        if self.renderer is None:
+            raise ValueError("scan_url needs a renderer: Scanner(renderer=Renderer(allow_network=True))")
+        return self.scan_extraction(self.renderer.extract(url=url))
+
+    def scan_extraction(self, ext) -> ScanResult:
+        """Core scan over an Extraction (static or rendered)."""
         result = ScanResult(visible_text=ext.visible_text, hidden_spans=ext.hidden_spans)
         result.findings.extend(self.scan_text(ext.visible_text, "visible"))
 

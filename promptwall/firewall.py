@@ -53,7 +53,19 @@ class Firewall:
             result = self.scanner.scan_html(content)
         else:
             result = self.scanner.scan_plain(content)
+        return self._decide(result, content, source, t0)
 
+    def inspect_url(self, url: str) -> Decision:
+        """Render a live page in the browser and inspect it.
+
+        Needs Firewall(Scanner(renderer=Renderer(allow_network=True))).
+        """
+        t0 = time.perf_counter()
+        result = self.scanner.scan_url(url)
+        # Log a hash of what was rendered (the URL alone may serve different content).
+        return self._decide(result, result.visible_text, url, t0)
+
+    def _decide(self, result, content: str, source: str | None, t0: float) -> Decision:
         verdict, risk = result.verdict, result.risk_score
         removed: list[str] = []
         if verdict == "block":

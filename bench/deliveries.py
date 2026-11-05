@@ -50,7 +50,18 @@ DELIVERIES = {
                               f".textContent = {json.dumps(p)};</script>"),
 }
 
-EXPECTED_GAPS = {"js_injected"}
+EXPECTED_GAPS = {"js_injected"}   # in static mode; rendered mode (Phase 4) sees it
+
+# Phase 4: hiding via an EXTERNAL stylesheet. Kept out of DELIVERIES on purpose,
+# so the 1,932 original cases (and baselines run on them) stay byte-identical.
+# The benchmark's renderer serves this URL locally; nothing is fetched.
+EXTERNAL_CSS_URL = "https://static.bench-cdn.test/newsletter.css"
+EXTERNAL_CSS_BODY = ".nl-ext-promo { display: none; }"
+
+
+def external_css(p: str) -> str:
+    return (f'<link rel="stylesheet" href="{EXTERNAL_CSS_URL}">'
+            f'<div class="nl-ext-promo">{_block(p)}</div>')
 
 
 def inject(host_html: str, snippet: str, pos_key: int) -> str:

@@ -14,7 +14,7 @@ from typing import Iterator
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import sources  # noqa: E402
-from deliveries import _HOMO, DELIVERIES, inject  # noqa: E402
+from deliveries import _HOMO, DELIVERIES, external_css, inject  # noqa: E402
 from hard_negatives import HARD_NEGATIVES  # noqa: E402
 from promptwall.scanner import normalize  # noqa: E402
 
@@ -69,6 +69,21 @@ def attack_pages(clean_hosts: list[tuple[str, str]]) -> Iterator[AttackPage]:
                                  inject(host, DELIVERIES[dname](payload), k),
                                  squash(goal_seen)[:50], payload)
                 k += 1
+
+
+def external_css_pages(clean_hosts: list[tuple[str, str]]) -> Iterator[AttackPage]:
+    """Phase 4 set: 161 test goals x 2 wrappers, hidden by an external stylesheet."""
+    wrappers = list(sources.WRAPPERS)
+    k = 0
+    for g in sources.test_goals():
+        for j in range(2):
+            w = wrappers[(2 * k + j) % len(wrappers)]
+            payload = sources.wrap(w, g.text)
+            hname, host = clean_hosts[k % len(clean_hosts)]
+            yield AttackPage("external_css", w, g.source, hname,
+                             inject(host, external_css(payload), k + j),
+                             squash(g.text)[:50], payload)
+        k += 1
 
 
 def text_attacks() -> Iterator[tuple[str, str]]:
