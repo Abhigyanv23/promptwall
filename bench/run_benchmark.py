@@ -111,14 +111,50 @@ class Tally:
             yield row
 
 
-def main():
+def build_scanner(args) -> Scanner:
+    if args.classifier == "tfidf":
+        return Scanner()                      # the bundled TF-IDF model, as shipped
+    from promptwall.ml import InjectionClassifier
+    from promptwall.transformer_ml import TransformerClassifier
+    if not args.model:
+        sys.exit("--classifier transformer needs --model (a model directory or HF repo id)")
+    prefilter = InjectionClassifier.load_default() if args.cascade else None
+    return Scanner(classifier=TransformerClassifier(
+        args.model, device=args.device, prefilter=prefilter,
+        prefilter_threshold=args.cascade_threshold))
+
+
+def main(argv=None):
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--classifier", choices=["tfidf", "transformer"], default="tfidf")
+    ap.add_argument("--model", help="transformer model directory or Hugging Face repo id")
+    ap.add_argument("--device", default=None, help="cpu or cuda (default: cuda if available)")
+    ap.add_argument("--cascade", action="store_true",
+                    help="transformer only on chunks the TF-IDF model scores >= --cascade-threshold")
+    ap.add_argument("--cascade-threshold", type=float, default=0.02)
+    ap.add_argument("--tag", default="",
+                    help="suffix for output files (default for a transformer run: 'transformer')")
+    args = ap.parse_args(argv)
+    if args.classifier == "transformer" and not args.tag:
+        args.tag = "transformer_cascade" if args.cascade else "transformer"
+    suffix = f"_{args.tag}" if args.tag else ""
+
     # Windows consoles default to cp1252, which cannot print the report's symbols.
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     OUT.mkdir(exist_ok=True)
-    scanner = Scanner()
+    scanner = build_scanner(args)
     assert scanner.classifier is not None, "train the classifier first"
     test_pages = cases.benign_pages()
+    # A tagged run (another classifier) is compared case for case with the main
+    # run, so it reuses the main run's host pages instead of picking its own.
+    reference_hosts = None
+    if suffix:
+        ref = OUT / "results.json"
+        if not ref.exists():
+            sys.exit("run the default benchmark first (python bench/run_benchmark.py)")
+        reference_hosts = json.loads(ref.read_text(encoding="utf-8"))["summary"]["clean_hosts"]
     latencies: list[float] = []
     misses: list[dict] = []
 
@@ -150,7 +186,16 @@ def main():
                "attack pages by goal source": by_source}
     per_case: list[dict] = []
     n_attack_pages = 0
-    for i, c in enumerate(cases.attack_pages(clean_hosts)):
+    dropped_hosts: list[str] = []
+    attack_hosts = clean_hosts
+    if reference_hosts is not None:
+        pages_by_name = dict(test_pages)
+        own_clean = {name for name, _ in clean_hosts}
+        dropped_hosts = sorted(h for h in reference_hosts if h not in own_clean)
+        attack_hosts = [(h, pages_by_name[h]) for h in reference_hosts]
+    for i, c in enumerate(cases.attack_pages(attack_hosts)):
+        if c.host in dropped_hosts:
+            continue   # this classifier flags the host page on its own: unfair to count
         v, ms, raw, safe, _ = scan(scanner, c.page, True)
         latencies.append(ms)
         in_raw = c.marker in squash(raw)
@@ -188,8 +233,9 @@ def main():
     lat = sorted(latencies)
     summary = {
         "n_attack_pages": n_attack_pages, "n_benign_pages": len(test_pages),
-        "n_clean_hosts": len(clean_hosts),
-        "clean_hosts": [name for name, _ in clean_hosts],
+        "n_clean_hosts": len(attack_hosts) - len(dropped_hosts),
+        "clean_hosts": [name for name, _ in attack_hosts if name not in dropped_hosts],
+        "hosts_dropped_vs_main_run": dropped_hosts,
         "latency_ms": {"p50": round(statistics.median(lat), 1),
                        "p95": round(lat[int(0.95 * len(lat))], 1),
                        "max": round(lat[-1], 1)},
@@ -202,16 +248,27 @@ def main():
     data = {"summary": summary,
             "tables": {t: list(tab.rows()) for t, tab in tables.items()},
             "false_positives": false_pos}
-    (OUT / "results.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+    stats = getattr(scanner.classifier, "stats", None)
+    if stats:
+        summary["classifier_stats"] = stats
+    (OUT / f"results{suffix}.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
     # One line per case: lets baselines.py compare on exactly the same subset.
-    (OUT / "per_case.jsonl").write_text("\n".join(json.dumps(r) for r in per_case) + "\n", encoding="utf-8")
-    with (OUT / "misses.csv").open("w", newline="", encoding="utf-8") as fh:
+    (OUT / f"per_case{suffix}.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in per_case) + "\n", encoding="utf-8")
+    with (OUT / f"misses{suffix}.csv").open("w", newline="", encoding="utf-8") as fh:
         wr = csv.DictWriter(fh, fieldnames=["set", "delivery", "wrapper", "goal_source",
                                             "host", "reached_llm", "payload"])
         wr.writeheader()
         wr.writerows(misses)
-    (OUT / "RESULTS.md").write_text(render_md(data), encoding="utf-8")
-    print(render_md(data))
+    md = render_md(data)
+    if suffix:
+        md = md.replace("# promptwall benchmark results",
+                        f"# promptwall benchmark results: {args.tag} "
+                        f"({summary['classifier'].get('model', args.classifier)})\n\n"
+                        f"- Same attack pages as the main run; host pages this classifier flags "
+                        f"on its own are dropped: {len(dropped_hosts)} {dropped_hosts}", 1)
+    (OUT / f"RESULTS{suffix}.md").write_text(md, encoding="utf-8")
+    print(md)
 
 
 def pct(x: float) -> str:

@@ -13,6 +13,7 @@ dependencies = ["beautifulsoup4>=4.12"]
 [project.optional-dependencies]
 ml = ["scikit-learn>=1.9", "joblib>=1.3"]
 render = ["playwright>=1.40"]
+transformer = ["torch>=2.1", "transformers>=4.40", "sentencepiece", "huggingface_hub"]
 dev = ["pytest>=8", "scikit-learn>=1.9", "joblib>=1.3"]
 
 [project.scripts]
