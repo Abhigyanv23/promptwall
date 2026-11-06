@@ -1,0 +1,662 @@
+{
+  "promptwall_fpr": 0.047619047619047616,
+  "best_at_promptwall_fpr": {
+    "threshold": 0.034209001,
+    "benign_fpr": 0.047619047619047616,
+    "n_attack": 1835,
+    "baseline_flagged": 0.3138964577656676,
+    "baseline_reached": 0.32752043596730246,
+    "promptwall_flagged": 0.6337874659400545,
+    "promptwall_reached": 0.0784741144414169
+  },
+  "points": [
+    {
+      "threshold": 0.9084720009999999,
+      "benign_fpr": 0.0,
+      "n_attack": 1932,
+      "baseline_flagged": 0.20031055900621117,
+      "baseline_reached": 0.4358178053830228,
+      "promptwall_flagged": 0.6361283643892339,
+      "promptwall_reached": 0.07815734989648034
+    },
+    {
+      "threshold": 0.9,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.20431806213796735,
+      "baseline_reached": 0.4318062137967351,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.7,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.21590310689836756,
+      "baseline_reached": 0.42022116903633494,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.5,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.22327540810953134,
+      "baseline_reached": 0.41284886782517116,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.3,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.23486045286993154,
+      "baseline_reached": 0.40126382306477093,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.2,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.2506582411795682,
+      "baseline_reached": 0.3854660347551343,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.188765001,
+      "benign_fpr": 0.015873015873015872,
+      "n_attack": 1899,
+      "baseline_flagged": 0.25223802001053186,
+      "baseline_reached": 0.38388625592417064,
+      "promptwall_flagged": 0.6424433912585571,
+      "promptwall_reached": 0.07635597682991048
+    },
+    {
+      "threshold": 0.1,
+      "benign_fpr": 0.031746031746031744,
+      "n_attack": 1867,
+      "baseline_flagged": 0.27209426888055704,
+      "baseline_reached": 0.3658275307980718,
+      "promptwall_flagged": 0.6384574183181575,
+      "promptwall_reached": 0.0771290840921264
+    },
+    {
+      "threshold": 0.05,
+      "benign_fpr": 0.031746031746031744,
+      "n_attack": 1867,
+      "baseline_flagged": 0.2978039635779325,
+      "baseline_reached": 0.3422603106588109,
+      "promptwall_flagged": 0.6384574183181575,
+      "promptwall_reached": 0.0771290840921264
+    },
+    {
+      "threshold": 0.036245001,
+      "benign_fpr": 0.031746031746031744,
+      "n_attack": 1867,
+      "baseline_flagged": 0.31280128548473485,
+      "baseline_reached": 0.3283342260310659,
+      "promptwall_flagged": 0.6384574183181575,
+      "promptwall_reached": 0.0771290840921264
+    },
+    {
+      "threshold": 0.034209001,
+      "benign_fpr": 0.047619047619047616,
+      "n_attack": 1835,
+      "baseline_flagged": 0.3138964577656676,
+      "baseline_reached": 0.32752043596730246,
+      "promptwall_flagged": 0.6337874659400545,
+      "promptwall_reached": 0.0784741144414169
+    },
+    {
+      "threshold": 0.028249001,
+      "benign_fpr": 0.06349206349206349,
+      "n_attack": 1803,
+      "baseline_flagged": 0.3194675540765391,
+      "baseline_reached": 0.32224070992789794,
+      "promptwall_flagged": 0.6289517470881864,
+      "promptwall_reached": 0.07986688851913477
+    },
+    {
+      "threshold": 0.025389000999999998,
+      "benign_fpr": 0.07936507936507936,
+      "n_attack": 1771,
+      "baseline_flagged": 0.3201581027667984,
+      "baseline_reached": 0.3201581027667984,
+      "promptwall_flagged": 0.6369282891022021,
+      "promptwall_reached": 0.08130999435347261
+    },
+    {
+      "threshold": 0.022186001,
+      "benign_fpr": 0.09523809523809523,
+      "n_attack": 1738,
+      "baseline_flagged": 0.3273878020713464,
+      "baseline_reached": 0.3130034522439586,
+      "promptwall_flagged": 0.6444188722669736,
+      "promptwall_reached": 0.07940161104718067
+    },
+    {
+      "threshold": 0.02,
+      "benign_fpr": 0.1111111111111111,
+      "n_attack": 1705,
+      "baseline_flagged": 0.3296187683284457,
+      "baseline_reached": 0.3096774193548387,
+      "promptwall_flagged": 0.6434017595307918,
+      "promptwall_reached": 0.08035190615835777
+    },
+    {
+      "threshold": 0.018304001,
+      "benign_fpr": 0.1111111111111111,
+      "n_attack": 1705,
+      "baseline_flagged": 0.34134897360703814,
+      "baseline_reached": 0.2991202346041056,
+      "promptwall_flagged": 0.6434017595307918,
+      "promptwall_reached": 0.08035190615835777
+    },
+    {
+      "threshold": 0.014708001,
+      "benign_fpr": 0.12698412698412698,
+      "n_attack": 1673,
+      "baseline_flagged": 0.36640765092647937,
+      "baseline_reached": 0.2791392707710699,
+      "promptwall_flagged": 0.6383741781231321,
+      "promptwall_reached": 0.08188882247459653
+    },
+    {
+      "threshold": 0.014360000999999999,
+      "benign_fpr": 0.14285714285714285,
+      "n_attack": 1641,
+      "baseline_flagged": 0.3692870201096892,
+      "baseline_reached": 0.27787934186471663,
+      "promptwall_flagged": 0.6331505179768434,
+      "promptwall_reached": 0.08348567946374162
+    },
+    {
+      "threshold": 0.013480001,
+      "benign_fpr": 0.15873015873015872,
+      "n_attack": 1609,
+      "baseline_flagged": 0.3766314481044127,
+      "baseline_reached": 0.26911124922311996,
+      "promptwall_flagged": 0.6401491609695463,
+      "promptwall_reached": 0.08141702921068987
+    },
+    {
+      "threshold": 0.012471000999999999,
+      "benign_fpr": 0.1746031746031746,
+      "n_attack": 1576,
+      "baseline_flagged": 0.37944162436548223,
+      "baseline_reached": 0.26586294416243655,
+      "promptwall_flagged": 0.6345177664974619,
+      "promptwall_reached": 0.08312182741116751
+    },
+    {
+      "threshold": 0.011273001,
+      "benign_fpr": 0.19047619047619047,
+      "n_attack": 1544,
+      "baseline_flagged": 0.38924870466321243,
+      "baseline_reached": 0.25841968911917096,
+      "promptwall_flagged": 0.6411917098445595,
+      "promptwall_reached": 0.08095854922279792
+    },
+    {
+      "threshold": 0.010837000999999999,
+      "benign_fpr": 0.20634920634920634,
+      "n_attack": 1512,
+      "baseline_flagged": 0.3915343915343915,
+      "baseline_reached": 0.2566137566137566,
+      "promptwall_flagged": 0.6349206349206349,
+      "promptwall_reached": 0.08267195767195767
+    },
+    {
+      "threshold": 0.01,
+      "benign_fpr": 0.2222222222222222,
+      "n_attack": 1479,
+      "baseline_flagged": 0.40229885057471265,
+      "baseline_reached": 0.24881676808654496,
+      "promptwall_flagged": 0.6348884381338742,
+      "promptwall_reached": 0.08316430020283976
+    },
+    {
+      "threshold": 0.009908001,
+      "benign_fpr": 0.2222222222222222,
+      "n_attack": 1479,
+      "baseline_flagged": 0.4043272481406356,
+      "baseline_reached": 0.24678837052062205,
+      "promptwall_flagged": 0.6348884381338742,
+      "promptwall_reached": 0.08316430020283976
+    },
+    {
+      "threshold": 0.009882001,
+      "benign_fpr": 0.23809523809523808,
+      "n_attack": 1446,
+      "baseline_flagged": 0.40110650069156295,
+      "baseline_reached": 0.2503457814661134,
+      "promptwall_flagged": 0.6286307053941909,
+      "promptwall_reached": 0.08506224066390042
+    },
+    {
+      "threshold": 0.009637001,
+      "benign_fpr": 0.25396825396825395,
+      "n_attack": 1414,
+      "baseline_flagged": 0.4016973125884017,
+      "baseline_reached": 0.24964639321074963,
+      "promptwall_flagged": 0.6216407355021216,
+      "promptwall_reached": 0.086987270155587
+    },
+    {
+      "threshold": 0.009598001,
+      "benign_fpr": 0.2698412698412698,
+      "n_attack": 1382,
+      "baseline_flagged": 0.3979739507959479,
+      "baseline_reached": 0.25253256150506515,
+      "promptwall_flagged": 0.630246020260492,
+      "promptwall_reached": 0.085383502170767
+    },
+    {
+      "threshold": 0.008363001,
+      "benign_fpr": 0.2857142857142857,
+      "n_attack": 1350,
+      "baseline_flagged": 0.41333333333333333,
+      "baseline_reached": 0.24074074074074073,
+      "promptwall_flagged": 0.64,
+      "promptwall_reached": 0.08296296296296296
+    },
+    {
+      "threshold": 0.008278001,
+      "benign_fpr": 0.30158730158730157,
+      "n_attack": 1318,
+      "baseline_flagged": 0.40667678300455234,
+      "baseline_reached": 0.24582701062215478,
+      "promptwall_flagged": 0.6388467374810318,
+      "promptwall_reached": 0.0834597875569044
+    },
+    {
+      "threshold": 0.007983001,
+      "benign_fpr": 0.31746031746031744,
+      "n_attack": 1286,
+      "baseline_flagged": 0.40902021772939345,
+      "baseline_reached": 0.24494556765163297,
+      "promptwall_flagged": 0.6321928460342147,
+      "promptwall_reached": 0.08553654743390357
+    },
+    {
+      "threshold": 0.0077780010000000005,
+      "benign_fpr": 0.3333333333333333,
+      "n_attack": 1254,
+      "baseline_flagged": 0.42025518341307816,
+      "baseline_reached": 0.23365231259968103,
+      "promptwall_flagged": 0.6419457735247209,
+      "promptwall_reached": 0.08293460925039872
+    },
+    {
+      "threshold": 0.007645001,
+      "benign_fpr": 0.3492063492063492,
+      "n_attack": 1221,
+      "baseline_flagged": 0.42424242424242425,
+      "baseline_reached": 0.23013923013923013,
+      "promptwall_flagged": 0.638001638001638,
+      "promptwall_reached": 0.0819000819000819
+    },
+    {
+      "threshold": 0.007404001,
+      "benign_fpr": 0.36507936507936506,
+      "n_attack": 1221,
+      "baseline_flagged": 0.4283374283374283,
+      "baseline_reached": 0.22768222768222768,
+      "promptwall_flagged": 0.638001638001638,
+      "promptwall_reached": 0.0819000819000819
+    },
+    {
+      "threshold": 0.007134001,
+      "benign_fpr": 0.38095238095238093,
+      "n_attack": 1189,
+      "baseline_flagged": 0.4238856181665265,
+      "baseline_reached": 0.2304457527333894,
+      "promptwall_flagged": 0.6459209419680404,
+      "promptwall_reached": 0.0798990748528175
+    },
+    {
+      "threshold": 0.007005001,
+      "benign_fpr": 0.3968253968253968,
+      "n_attack": 1157,
+      "baseline_flagged": 0.42350907519446845,
+      "baseline_reached": 0.23249783923941228,
+      "promptwall_flagged": 0.6387208297320657,
+      "promptwall_reached": 0.08210890233362143
+    },
+    {
+      "threshold": 0.006901001,
+      "benign_fpr": 0.4126984126984127,
+      "n_attack": 1125,
+      "baseline_flagged": 0.4177777777777778,
+      "baseline_reached": 0.23644444444444446,
+      "promptwall_flagged": 0.648,
+      "promptwall_reached": 0.08
+    },
+    {
+      "threshold": 0.006816001,
+      "benign_fpr": 0.42857142857142855,
+      "n_attack": 1125,
+      "baseline_flagged": 0.41955555555555557,
+      "baseline_reached": 0.23466666666666666,
+      "promptwall_flagged": 0.648,
+      "promptwall_reached": 0.08
+    },
+    {
+      "threshold": 0.006625001,
+      "benign_fpr": 0.4444444444444444,
+      "n_attack": 1093,
+      "baseline_flagged": 0.4181152790484904,
+      "baseline_reached": 0.23604757548032937,
+      "promptwall_flagged": 0.6404391582799634,
+      "promptwall_reached": 0.08234217749313816
+    },
+    {
+      "threshold": 0.006439001000000001,
+      "benign_fpr": 0.4603174603174603,
+      "n_attack": 1061,
+      "baseline_flagged": 0.4231856738925542,
+      "baseline_reached": 0.23279924599434496,
+      "promptwall_flagged": 0.6503298774740811,
+      "promptwall_reached": 0.08011310084825636
+    },
+    {
+      "threshold": 0.006217001000000001,
+      "benign_fpr": 0.47619047619047616,
+      "n_attack": 1029,
+      "baseline_flagged": 0.41885325558794945,
+      "baseline_reached": 0.23615160349854228,
+      "promptwall_flagged": 0.6423712342079689,
+      "promptwall_reached": 0.0826044703595724
+    },
+    {
+      "threshold": 0.006168001,
+      "benign_fpr": 0.49206349206349204,
+      "n_attack": 997,
+      "baseline_flagged": 0.41424272818455365,
+      "baseline_reached": 0.24172517552657974,
+      "promptwall_flagged": 0.6469408224674023,
+      "promptwall_reached": 0.07923771313941826
+    },
+    {
+      "threshold": 0.006035001000000001,
+      "benign_fpr": 0.5079365079365079,
+      "n_attack": 965,
+      "baseline_flagged": 0.41347150259067356,
+      "baseline_reached": 0.24352331606217617,
+      "promptwall_flagged": 0.6466321243523316,
+      "promptwall_reached": 0.07875647668393783
+    },
+    {
+      "threshold": 0.0056870010000000006,
+      "benign_fpr": 0.5238095238095238,
+      "n_attack": 933,
+      "baseline_flagged": 0.42979635584137194,
+      "baseline_reached": 0.2315112540192926,
+      "promptwall_flagged": 0.6580921757770632,
+      "promptwall_reached": 0.07502679528403002
+    },
+    {
+      "threshold": 0.005586001,
+      "benign_fpr": 0.5396825396825397,
+      "n_attack": 901,
+      "baseline_flagged": 0.4239733629300777,
+      "baseline_reached": 0.23640399556048836,
+      "promptwall_flagged": 0.6492785793562708,
+      "promptwall_reached": 0.07769145394006659
+    },
+    {
+      "threshold": 0.005253001,
+      "benign_fpr": 0.5555555555555556,
+      "n_attack": 869,
+      "baseline_flagged": 0.42462600690448793,
+      "baseline_reached": 0.23475258918296893,
+      "promptwall_flagged": 0.6444188722669736,
+      "promptwall_reached": 0.0805523590333717
+    },
+    {
+      "threshold": 0.005154001,
+      "benign_fpr": 0.5714285714285714,
+      "n_attack": 837,
+      "baseline_flagged": 0.4145758661887694,
+      "baseline_reached": 0.24253285543608125,
+      "promptwall_flagged": 0.6344086021505376,
+      "promptwall_reached": 0.08363201911589008
+    },
+    {
+      "threshold": 0.005,
+      "benign_fpr": 0.5873015873015873,
+      "n_attack": 805,
+      "baseline_flagged": 0.40869565217391307,
+      "baseline_reached": 0.2484472049689441,
+      "promptwall_flagged": 0.622360248447205,
+      "promptwall_reached": 0.08695652173913043
+    },
+    {
+      "threshold": 0.004751001,
+      "benign_fpr": 0.5873015873015873,
+      "n_attack": 805,
+      "baseline_flagged": 0.422360248447205,
+      "baseline_reached": 0.2360248447204969,
+      "promptwall_flagged": 0.622360248447205,
+      "promptwall_reached": 0.08695652173913043
+    },
+    {
+      "threshold": 0.004559001,
+      "benign_fpr": 0.6031746031746031,
+      "n_attack": 773,
+      "baseline_flagged": 0.4191461836998706,
+      "baseline_reached": 0.23673997412677877,
+      "promptwall_flagged": 0.610608020698577,
+      "promptwall_reached": 0.09055627425614489
+    },
+    {
+      "threshold": 0.004421001,
+      "benign_fpr": 0.6190476190476191,
+      "n_attack": 741,
+      "baseline_flagged": 0.4143049932523617,
+      "baseline_reached": 0.24021592442645073,
+      "promptwall_flagged": 0.6072874493927125,
+      "promptwall_reached": 0.0931174089068826
+    },
+    {
+      "threshold": 0.004206001,
+      "benign_fpr": 0.6349206349206349,
+      "n_attack": 709,
+      "baseline_flagged": 0.4118476727785614,
+      "baseline_reached": 0.24259520451339917,
+      "promptwall_flagged": 0.614950634696756,
+      "promptwall_reached": 0.09732016925246827
+    },
+    {
+      "threshold": 0.0040400010000000005,
+      "benign_fpr": 0.6507936507936508,
+      "n_attack": 677,
+      "baseline_flagged": 0.42097488921713444,
+      "baseline_reached": 0.2378138847858198,
+      "promptwall_flagged": 0.6292466765140325,
+      "promptwall_reached": 0.09453471196454949
+    },
+    {
+      "threshold": 0.003957001,
+      "benign_fpr": 0.6666666666666666,
+      "n_attack": 645,
+      "baseline_flagged": 0.413953488372093,
+      "baseline_reached": 0.24651162790697675,
+      "promptwall_flagged": 0.6155038759689923,
+      "promptwall_reached": 0.09922480620155039
+    },
+    {
+      "threshold": 0.003857001,
+      "benign_fpr": 0.6825396825396826,
+      "n_attack": 613,
+      "baseline_flagged": 0.401305057096248,
+      "baseline_reached": 0.2561174551386623,
+      "promptwall_flagged": 0.632952691680261,
+      "promptwall_reached": 0.09624796084828711
+    },
+    {
+      "threshold": 0.003725001,
+      "benign_fpr": 0.6984126984126984,
+      "n_attack": 581,
+      "baseline_flagged": 0.4199655765920826,
+      "baseline_reached": 0.23924268502581755,
+      "promptwall_flagged": 0.6265060240963856,
+      "promptwall_reached": 0.10154905335628227
+    },
+    {
+      "threshold": 0.002908001,
+      "benign_fpr": 0.7142857142857143,
+      "n_attack": 549,
+      "baseline_flagged": 0.46994535519125685,
+      "baseline_reached": 0.20218579234972678,
+      "promptwall_flagged": 0.644808743169399,
+      "promptwall_reached": 0.0965391621129326
+    },
+    {
+      "threshold": 0.002602001,
+      "benign_fpr": 0.7301587301587301,
+      "n_attack": 517,
+      "baseline_flagged": 0.4738878143133462,
+      "baseline_reached": 0.195357833655706,
+      "promptwall_flagged": 0.6653771760154739,
+      "promptwall_reached": 0.09090909090909091
+    },
+    {
+      "threshold": 0.002220001,
+      "benign_fpr": 0.746031746031746,
+      "n_attack": 485,
+      "baseline_flagged": 0.49072164948453606,
+      "baseline_reached": 0.18556701030927836,
+      "promptwall_flagged": 0.6494845360824743,
+      "promptwall_reached": 0.09690721649484536
+    },
+    {
+      "threshold": 0.0022040009999999997,
+      "benign_fpr": 0.7777777777777778,
+      "n_attack": 421,
+      "baseline_flagged": 0.46080760095011875,
+      "baseline_reached": 0.20665083135391923,
+      "promptwall_flagged": 0.6104513064133017,
+      "promptwall_reached": 0.10926365795724466
+    },
+    {
+      "threshold": 0.002,
+      "benign_fpr": 0.7936507936507936,
+      "n_attack": 389,
+      "baseline_flagged": 0.46272493573264784,
+      "baseline_reached": 0.20308483290488433,
+      "promptwall_flagged": 0.6401028277634961,
+      "promptwall_reached": 0.10282776349614396
+    },
+    {
+      "threshold": 0.001824001,
+      "benign_fpr": 0.7936507936507936,
+      "n_attack": 389,
+      "baseline_flagged": 0.4884318766066838,
+      "baseline_reached": 0.18766066838046272,
+      "promptwall_flagged": 0.6401028277634961,
+      "promptwall_reached": 0.10282776349614396
+    },
+    {
+      "threshold": 0.001637001,
+      "benign_fpr": 0.8095238095238095,
+      "n_attack": 357,
+      "baseline_flagged": 0.484593837535014,
+      "baseline_reached": 0.19327731092436976,
+      "promptwall_flagged": 0.6274509803921569,
+      "promptwall_reached": 0.10084033613445378
+    },
+    {
+      "threshold": 0.001505001,
+      "benign_fpr": 0.8412698412698413,
+      "n_attack": 293,
+      "baseline_flagged": 0.4709897610921502,
+      "baseline_reached": 0.20136518771331058,
+      "promptwall_flagged": 0.6382252559726962,
+      "promptwall_reached": 0.10238907849829351
+    },
+    {
+      "threshold": 0.001369001,
+      "benign_fpr": 0.8571428571428571,
+      "n_attack": 260,
+      "baseline_flagged": 0.5076923076923077,
+      "baseline_reached": 0.16538461538461538,
+      "promptwall_flagged": 0.6807692307692308,
+      "promptwall_reached": 0.09615384615384616
+    },
+    {
+      "threshold": 0.001149001,
+      "benign_fpr": 0.873015873015873,
+      "n_attack": 227,
+      "baseline_flagged": 0.5462555066079295,
+      "baseline_reached": 0.14537444933920704,
+      "promptwall_flagged": 0.6696035242290749,
+      "promptwall_reached": 0.09251101321585903
+    },
+    {
+      "threshold": 0.001,
+      "benign_fpr": 0.8888888888888888,
+      "n_attack": 194,
+      "baseline_flagged": 0.5721649484536082,
+      "baseline_reached": 0.13402061855670103,
+      "promptwall_flagged": 0.7319587628865979,
+      "promptwall_reached": 0.07731958762886598
+    },
+    {
+      "threshold": 0.000826001,
+      "benign_fpr": 0.8888888888888888,
+      "n_attack": 194,
+      "baseline_flagged": 0.6391752577319587,
+      "baseline_reached": 0.08247422680412371,
+      "promptwall_flagged": 0.7319587628865979,
+      "promptwall_reached": 0.07731958762886598
+    },
+    {
+      "threshold": 0.000712001,
+      "benign_fpr": 0.9047619047619048,
+      "n_attack": 194,
+      "baseline_flagged": 0.6494845360824743,
+      "baseline_reached": 0.07731958762886598,
+      "promptwall_flagged": 0.7319587628865979,
+      "promptwall_reached": 0.07731958762886598
+    },
+    {
+      "threshold": 0.000625001,
+      "benign_fpr": 0.9523809523809523,
+      "n_attack": 98,
+      "baseline_flagged": 0.6122448979591837,
+      "baseline_reached": 0.11224489795918367,
+      "promptwall_flagged": 0.7040816326530612,
+      "promptwall_reached": 0.061224489795918366
+    },
+    {
+      "threshold": 0.000590001,
+      "benign_fpr": 0.9682539682539683,
+      "n_attack": 65,
+      "baseline_flagged": 0.5692307692307692,
+      "baseline_reached": 0.15384615384615385,
+      "promptwall_flagged": 0.6,
+      "promptwall_reached": 0.09230769230769231
+    },
+    {
+      "threshold": 0.0005,
+      "benign_fpr": 0.9841269841269841,
+      "n_attack": 32,
+      "baseline_flagged": 0.5625,
+      "baseline_reached": 0.15625,
+      "promptwall_flagged": 0.28125,
+      "promptwall_reached": 0.1875
+    },
+    {
+      "threshold": 0.00045100100000000003,
+      "benign_fpr": 0.9841269841269841,
+      "n_attack": 32,
+      "baseline_flagged": 0.59375,
+      "baseline_reached": 0.125,
+      "promptwall_flagged": 0.28125,
+      "promptwall_reached": 0.1875
+    }
+  ]
+}
