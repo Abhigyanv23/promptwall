@@ -149,7 +149,9 @@ their own are dropped from the attack comparison for both detectors.
 
 **ProtectAI `deberta-v3-base-prompt-injection-v2`** (the model behind LLM Guard's injection
 scanner), default threshold 0.5. (These runs predate the tokenizer fix described under Prompt
-Guard below; whether that fix changes ProtectAI's tokens is being checked.) Full tables:
+Guard below. A check after the fix showed transformers tokenizes this model exactly as its
+`tokenizer.json` does, and every recomputed figure matched to the point, so the results stand.)
+Full tables:
 [`bench/results/BASELINE_protectai.md`](bench/results/BASELINE_protectai.md).
 
 | | ProtectAI DeBERTa v2 | **promptwall** |
@@ -356,7 +358,7 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 - [x] ProtectAI DeBERTa v2 baseline
 - [x] Prompt Guard 2 86M and 22M baselines, with the tokenizer fix
 - [x] Threshold sweep: Prompt Guard at promptwall's false-positive rate
-- [ ] Check whether the tokenizer fix changes the ProtectAI results
+- [x] Check whether the tokenizer fix changes the ProtectAI results (it does not)
 - [x] ProtectAI with 128-token windows (sensitivity check)
 - [ ] Replace TF-IDF with a small transformer fine-tuned and calibrated on web-page chunks, to lift
       visible-text and paraphrase recall without ProtectAI's false-positive rate
