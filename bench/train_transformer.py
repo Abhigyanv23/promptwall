@@ -87,7 +87,13 @@ def main(argv=None):
     tok = AutoTokenizer.from_pretrained(args.base)
     model = AutoModelForSequenceClassification.from_pretrained(
         args.base, num_labels=2, id2label={0: "BENIGN", 1: "INJECTION"},
-        label2id={"BENIGN": 0, "INJECTION": 1}).to(device)
+        label2id={"BENIGN": 0, "INJECTION": 1})
+    # transformers 5 loads weights in the checkpoint's own precision (deberta-v3-xsmall
+    # ships fp16), while 4.x always loaded fp32. Mixed-precision training needs fp32
+    # master weights - GradScaler refuses fp16 gradients - and autocast still runs the
+    # forward pass in fp16. .float() works on every transformers version.
+    model = model.float().to(device)
+    print(f"parameter dtype: {next(model.parameters()).dtype}")
 
     X = pos_fit + neg_fit
     y = [1] * len(pos_fit) + [0] * len(neg_fit)

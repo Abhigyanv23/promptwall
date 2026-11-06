@@ -118,6 +118,13 @@ def build_scanner(args) -> Scanner:
     from promptwall.transformer_ml import TransformerClassifier
     if not args.model:
         sys.exit("--classifier transformer needs --model (a model directory or HF repo id)")
+    # A Hugging Face repo id is exactly "owner/name". Anything else is a local path,
+    # and a missing local path would otherwise surface as a confusing 401 from the Hub.
+    looks_like_repo_id = (args.model.count("/") == 1 and not Path(args.model).is_absolute()
+                          and not args.model.startswith(("models/", "./", "../")))
+    if not Path(args.model).exists() and not looks_like_repo_id:
+        sys.exit(f"model directory not found: {args.model} (did training finish? "
+                 "run bench/train_transformer.py first)")
     prefilter = InjectionClassifier.load_default() if args.cascade else None
     return Scanner(classifier=TransformerClassifier(
         args.model, device=args.device, prefilter=prefilter,
