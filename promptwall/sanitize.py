@@ -61,6 +61,17 @@ def sanitize_text(text: str, scanner) -> Sanitized:
     if cur:
         windows.append(cur)
 
+    # A classifier with a score cache (the transformer) gets every window and
+    # window-final sentence in ONE batched call up front; the per-window checks
+    # below then hit the cache. Results are identical, only faster. (TF-IDF has
+    # no prefetch and is cheap per call, so it is left as it was.)
+    clf = scanner.classifier
+    if hasattr(clf, "prefetch"):
+        from .scanner import normalize_for_matching
+        joined_all = [" ".join(units[i] for i in w if units[i].strip()) for w in windows]
+        lasts = [units[max((i for i in w if units[i].strip()), default=w[0])] for w in windows]
+        clf.prefetch([normalize_for_matching(t) for t in joined_all + lasts if t.strip()])
+
     redact: set[int] = set()
     for wi, win in enumerate(windows):
         joined = " ".join(units[i] for i in win if units[i].strip())

@@ -33,7 +33,8 @@ MAX_TOKENS = 128   # chunks are <= 400 characters, about 100 tokens
 
 class TransformerClassifier:
     def __init__(self, model: str | Path, *, device: str | None = None, batch_size: int = 64,
-                 prefilter=None, prefilter_threshold: float = 0.02):
+                 prefilter=None, prefilter_threshold: float = 0.02,
+                 cache_size: int = 200_000):
         import torch
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -58,7 +59,12 @@ class TransformerClassifier:
         self.prefilter_threshold = prefilter_threshold
         if prefilter is not None:
             self.meta |= {"cascade_prefilter_threshold": prefilter_threshold}
-        self.stats = {"chunks": 0, "sent_to_transformer": 0}
+        # Score cache: identical text always gets the identical score, and pages
+        # repeat a lot of text (navigation, footers, boilerplate). cache_size=0
+        # disables it, e.g. to measure cold per-page latency.
+        self.cache_size = cache_size
+        self._cache: dict[str, float] = {}
+        self.stats = {"chunks": 0, "cache_hits": 0, "sent_to_transformer": 0}
 
     # -- scoring
     def _transformer_proba(self, texts: list[str]) -> list[float]:
@@ -73,10 +79,7 @@ class TransformerClassifier:
             out.extend(T.softmax(logits.float(), dim=-1)[:, 1].tolist())
         return out
 
-    def predict_proba(self, texts: list[str]) -> list[float]:
-        if not texts:
-            return []
-        self.stats["chunks"] += len(texts)
+    def _score_uncached(self, texts: list[str]) -> list[float]:
         if self.prefilter is None:
             self.stats["sent_to_transformer"] += len(texts)
             return self._transformer_proba(texts)
@@ -87,6 +90,29 @@ class TransformerClassifier:
         for i, p in zip(hard, self._transformer_proba([texts[i] for i in hard])):
             probs[i] = p
         return probs
+
+    def _lookup(self, texts: list[str], count: bool) -> list[float]:
+        if count:
+            self.stats["chunks"] += len(texts)
+        if self.cache_size <= 0:
+            return self._score_uncached(texts)
+        cached = [t in self._cache for t in texts]
+        if count:
+            self.stats["cache_hits"] += sum(cached)
+        todo = list(dict.fromkeys(t for t, c in zip(texts, cached) if not c))  # unique, in order
+        if todo:
+            if len(self._cache) + len(todo) > self.cache_size:
+                self._cache.clear()               # simple bound; refills from the next pages
+            self._cache.update(zip(todo, self._score_uncached(todo)))
+        return [self._cache[t] for t in texts]
+
+    def predict_proba(self, texts: list[str]) -> list[float]:
+        return self._lookup(texts, count=True) if texts else []
+
+    def prefetch(self, texts: list[str]) -> None:
+        """Score many texts in ONE batched call, so later single-text calls hit the cache."""
+        if texts and self.cache_size > 0:
+            self._lookup(texts, count=False)
 
     def score_text(self, text: str) -> list[ChunkScore]:
         return self.score_many([text])[0]

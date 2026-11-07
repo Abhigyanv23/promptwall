@@ -220,6 +220,8 @@ def main(argv=None):
                            "reached_llm": reached["promptwall"],
                            "payload": " ".join(c.payload.split())[:300]})
         n_attack_pages += 1
+        if n_attack_pages % 200 == 0:
+            print(f"  attack page {n_attack_pages}...", file=sys.stderr, flush=True)
 
     # ---------------- C. text-level (tool outputs, direct attacks) ----------------
     text_atk, text_ben = Tally(), Tally()
