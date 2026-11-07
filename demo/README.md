@@ -14,7 +14,8 @@ reaches public http(s) sites, re-checks every redirect, and stops at 10 seconds 
 | File | What it is |
 |---|---|
 | `core.py` | The analysis and the safe URL fetcher. It has no UI code, so it is tested in `tests/test_demo.py` |
-| `streamlit_app.py` | Streamlit UI, used for the free hosted demo |
+| `streamlit_app.py` | Streamlit UI, used for the hosted demo at <https://promptwall.streamlit.app> |
+| `view.py` | The HTML for the results (verdict, the two views, findings), escaped and tested |
 | `app.py` | The same demo in Gradio, for running locally |
 | `requirements.txt` | What Streamlit Community Cloud installs |
 

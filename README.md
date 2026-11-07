@@ -1,6 +1,7 @@
 # promptwall
 
 [![CI](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml)
+[![Live demo](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://promptwall.streamlit.app)
 
 **A prompt-injection firewall for browsing agents** — a middleware layer that sits between an
 LLM agent and the web pages, documents and tool outputs it reads. It detects instructions aimed
@@ -8,6 +9,8 @@ at the agent, strips content a human reader never sees, redacts suspicious text,
 attempt.
 
 Shipped with a **public, reproducible benchmark** that reports what it catches *and what it misses*.
+
+**[Try it live: promptwall.streamlit.app](https://promptwall.streamlit.app)**. Pick an example or paste a page, and see what a person sees, what was hidden, and what the agent receives.
 
 ```
  web page / doc / tool output
@@ -49,8 +52,8 @@ promptwall page.html --render        # page's own network requests stay blocked
 promptwall https://example.com --url # render a live URL (network allowed)
 ```
 
-**Live demo:** [`demo/`](https://github.com/Abhigyanv23/promptwall/blob/main/demo/README.md) is a
-small web app. Paste a page or fetch a public URL, and it shows the verdict, the findings, the text
+**Live demo:** <https://promptwall.streamlit.app> is a small web app, with its source in
+[`demo/`](https://github.com/Abhigyanv23/promptwall/blob/main/demo/README.md). Paste a page or fetch a public URL, and it shows the verdict, the findings, the text
 hidden from humans, and what the LLM receives. It deploys free on Streamlit Community Cloud
 (steps in `demo/README.md`); run it locally with `streamlit run demo/streamlit_app.py`. A Gradio
 version is also included. A URL fetcher is an SSRF risk by nature, so the demo only reaches public
@@ -448,11 +451,12 @@ promptwall/   extract.py  render.py  scanner.py  patterns.py  unicode_checks.py 
 bench/        fetch_sources.sh  sources.py  deliveries.py  hard_negatives.py  cases.py
               train_classifier.py  train_transformer.py  run_benchmark.py  run_rendered.py
               baselines.py  sweep.py  check_model.py  results/
-demo/         core.py (analysis + safe URL fetcher)  streamlit_app.py  app.py (Gradio)
+demo/         core.py (analysis + safe URL fetcher)  view.py (result HTML)  streamlit_app.py  app.py
               requirements.txt  README.md
 notebooks/    train_transformer_colab.ipynb
 tests/        test_scanner.py  test_firewall.py  test_ml.py  test_confusables.py  test_render.py
               test_baseline_windows.py  test_transformer_ml.py  test_demo.py  test_version.py
 .github/      workflows/ci.yml (tests, render, package)  workflows/publish.yml (PyPI release)
 RELEASING.md  one-time PyPI setup and the release checklist
+.streamlit/   config.toml (demo theme)
 ```

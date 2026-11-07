@@ -119,6 +119,7 @@ def analyze(content: str, as_text: bool = False) -> dict:
                      for f in decision.findings],
         "hidden": [[s.reason, s.text[:300]] for s in result.hidden_spans],
         "removed": decision.removed,
+        "visible_text": result.visible_text,
         "safe_text": decision.safe_text,
         "llm_input": fw.wrap_untrusted(decision.safe_text),
     }
@@ -134,11 +135,15 @@ VERDICT_TEXT = {
 }
 
 
+def _n(items, word: str) -> str:
+    return f"{len(items)} {word}{'' if len(items) == 1 else 's'}"
+
+
 def summary_markdown(r: dict) -> str:
     lines = [f"## {r['verdict'].upper()} · risk {r['risk']:.2f}", "",
              VERDICT_TEXT[r["verdict"]], "",
-             f"{len(r['findings'])} findings · {len(r['hidden'])} hidden spans · "
-             f"{len(r['removed'])} passages redacted · {r['latency_ms']} ms"]
+             f"{_n(r['findings'], 'finding')} · {_n(r['hidden'], 'hidden span')} · "
+             f"{_n(r['removed'], 'passage')} redacted · {r['latency_ms']} ms"]
     if r["hidden"] and r["verdict"] != "block":
         lines += ["", "Hidden content is always dropped, flagged or not: a human reader never "
                       "sees it, so the agent doesn't either."]

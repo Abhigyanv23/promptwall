@@ -1,7 +1,7 @@
 """promptwall live demo (Streamlit). Deploys free on Streamlit Community Cloud:
 share.streamlit.io -> Create app -> this repo, branch main, file demo/streamlit_app.py.
 
-Locally:
+Locally (from the repo root, so .streamlit/config.toml applies the theme):
     pip install streamlit requests -e .
     streamlit run demo/streamlit_app.py
 """
@@ -10,84 +10,74 @@ from __future__ import annotations
 import streamlit as st
 
 import core
+import view
 
-st.set_page_config(page_title="promptwall demo", layout="wide")
+st.set_page_config(page_title="promptwall: see what your agent reads", layout="wide")
+st.markdown(view.CSS, unsafe_allow_html=True)
+st.markdown(view.HERO, unsafe_allow_html=True)
 
-st.title("promptwall: a prompt-injection firewall for browsing agents")
-st.markdown(
-    "Paste a web page (or fetch one by URL) and see what an AI agent would receive after "
-    "promptwall has checked it: the verdict, what was found, what was hidden from human "
-    "readers, and the cleaned text. "
-    "[Code, benchmark and limits on GitHub](https://github.com/Abhigyanv23/promptwall).  \n"
-    "*Static mode only: styles from external CSS files and text added by JavaScript are not "
-    "seen here (the package's rendered mode handles those).*")
-
-FIRST_EXAMPLE = next(iter(core.EXAMPLES))
+EXAMPLE_NAMES = list(core.EXAMPLES)
 if "content" not in st.session_state:
-    st.session_state.content = core.EXAMPLES[FIRST_EXAMPLE]
+    st.session_state.content = core.EXAMPLES[EXAMPLE_NAMES[0]]
+    st.session_state.example = EXAMPLE_NAMES[0]
     st.session_state.fetch_error = ""
 
 
 def load_example():
-    st.session_state.content = core.EXAMPLES[st.session_state.example]
+    name = st.session_state.example
+    if name:                                  # clicking the selected pill again clears it
+        st.session_state.content = core.EXAMPLES[name]
     st.session_state.fetch_error = ""
 
 
 def fetch():
     try:
         st.session_state.content = core.fetch_url(st.session_state.url)
+        st.session_state.example = None
         st.session_state.fetch_error = ""
     except core.FetchError as e:
         st.session_state.fetch_error = str(e)
 
 
+def edited():
+    st.session_state.example = None           # the text no longer matches an example
+
+
 @st.cache_resource
 def warm_up():
-    core.firewall()          # load the classifier once per server, not per visitor
+    core.firewall()                           # load the classifier once per server
     return True
 
 
 warm_up()
-left, right = st.columns([3, 4], gap="large")
 
-with left:
-    st.selectbox("Examples", list(core.EXAMPLES), key="example", on_change=load_example)
-    url_col, btn_col = st.columns([4, 1], vertical_alignment="bottom")
-    url_col.text_input("Fetch a public URL (optional)", key="url",
-                       placeholder="https://example.com/article")
-    btn_col.button("Fetch", on_click=fetch, width="stretch")
-    if st.session_state.fetch_error:
-        st.error(st.session_state.fetch_error)
-    st.text_area("HTML or text to check", key="content", height=360)
-    as_text = st.checkbox("Treat as plain text (tool output, email) instead of HTML")
+st.pills("Examples", EXAMPLE_NAMES, key="example", on_change=load_example)
 
-with right:
-    try:
-        r = core.analyze(st.session_state.content, as_text=as_text)
-    except ValueError as e:
-        st.info(str(e))
-        st.stop()
+url_col, btn_col = st.columns([5, 1], vertical_alignment="bottom")
+url_col.text_input("Or check a live page", key="url",
+                   placeholder="https://example.com/article")
+btn_col.button("Check page", on_click=fetch, width="stretch")
+if st.session_state.fetch_error:
+    st.error(st.session_state.fetch_error)
 
-    st.markdown(core.summary_markdown(r))
-    findings, hidden, llm, removed = st.tabs(
-        ["Findings", "Hidden from humans", "What the LLM receives", "Redacted"])
-    with findings:
-        if r["findings"]:
-            st.dataframe([dict(zip(["rule", "severity", "where", "snippet"], row))
-                          for row in r["findings"]], width="stretch", hide_index=True)
-        else:
-            st.write("No findings.")
-    with hidden:
-        if r["hidden"]:
-            st.dataframe([dict(zip(["how it was hidden", "text"], row)) for row in r["hidden"]],
-                         width="stretch", hide_index=True)
-        else:
-            st.write("Nothing on this page is hidden from a human reader.")
-    with llm:
-        st.caption("Fenced as untrusted data (spotlighting), so the model treats it as data.")
-        st.code(r["llm_input"], language=None, wrap_lines=True)
-    with removed:
-        if r["removed"]:
-            st.markdown("\n".join(f"- {t}" for t in r["removed"]))
-        else:
-            st.write("Nothing redacted.")
+with st.expander("Page source (paste your own HTML or text here)"):
+    st.text_area("Page source", key="content", height=300, on_change=edited,
+                 label_visibility="collapsed")
+    as_text = st.toggle("This is plain text (a tool result or email), not HTML")
+
+try:
+    r = core.analyze(st.session_state.content, as_text=as_text)
+except ValueError:
+    st.info("The page source is empty. Pick an example or paste a page to check it.")
+    st.stop()
+
+st.markdown(view.verdict_html(r), unsafe_allow_html=True)
+
+human, agent = st.columns(2, gap="medium")
+human.markdown(view.human_view_html(r), unsafe_allow_html=True)
+agent.markdown(view.agent_view_html(r), unsafe_allow_html=True)
+
+st.markdown("### Why")
+st.markdown(view.findings_html(r), unsafe_allow_html=True)
+
+st.markdown(view.FOOT, unsafe_allow_html=True)

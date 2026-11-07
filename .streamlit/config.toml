@@ -1,0 +1,11 @@
+# Theme for the demo (demo/streamlit_app.py). Streamlit reads this from the
+# folder it is started in: the repo root, both locally and on Community Cloud.
+[theme]
+base = "light"
+primaryColor = "#2747D6"
+backgroundColor = "#F3F5F7"
+secondaryBackgroundColor = "#E6EAEF"
+textColor = "#1B2430"
+
+[client]
+toolbarMode = "minimal"
