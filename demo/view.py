@@ -71,6 +71,7 @@ def plural(n: int, word: str) -> str:
 def verdict_html(r: dict) -> str:
     title, line = VERDICT[r["verdict"]]
     risk = max(0.0, min(1.0, r["risk"]))
+    lo, hi = r.get("sanitize_at", SANITIZE_THRESHOLD), r.get("block_at", BLOCK_THRESHOLD)
     counts = [plural(len(r["findings"]), "finding"), plural(len(r["hidden"]), "hidden passage"),
               plural(len(r["removed"]), "sentence") + " removed"]
     ml = "" if r["ml_enabled"] else '<p class="pw-note">Classifier unavailable: rules only.</p>'
@@ -81,17 +82,17 @@ def verdict_html(r: dict) -> str:
     <p>{line}</p>
   </div>
   <div class="pw-meter" role="img"
-       aria-label="Risk {risk:.2f}. Sanitize from {SANITIZE_THRESHOLD}, block from {BLOCK_THRESHOLD}.">
+       aria-label="Risk {risk:.2f}. Sanitize from {lo:g}, block from {hi:g}.">
     <div class="pw-meter-track">
-      <span class="pw-zone pw-zone-allow" style="width:{SANITIZE_THRESHOLD * 100:.0f}%"></span>
+      <span class="pw-zone pw-zone-allow" style="width:{lo * 100:.0f}%"></span>
       <span class="pw-zone pw-zone-sanitize"
-            style="width:{(BLOCK_THRESHOLD - SANITIZE_THRESHOLD) * 100:.0f}%"></span>
-      <span class="pw-zone pw-zone-block" style="width:{(1 - BLOCK_THRESHOLD) * 100:.0f}%"></span>
+            style="width:{(hi - lo) * 100:.0f}%"></span>
+      <span class="pw-zone pw-zone-block" style="width:{(1 - hi) * 100:.0f}%"></span>
       <span class="pw-needle" style="left:{risk * 100:.1f}%"></span>
     </div>
     <div class="pw-meter-scale">
       <span>Risk {risk:.2f}</span>
-      <span>sanitize from {SANITIZE_THRESHOLD}, block from {BLOCK_THRESHOLD}</span>
+      <span>sanitize from {lo:g}, block from {hi:g}</span>
     </div>
   </div>
   <p class="pw-counts">{", ".join(counts)}, checked in {r['latency_ms']} ms.</p>
@@ -161,8 +162,14 @@ CSS = """
   --pw-hatch: rgba(161, 92, 7, 0.16);
 }
 
-html, body, [class*="st-"], .stMarkdown, .stTextInput, .stTextArea, button, input, textarea {
+/* Text only. Streamlit draws its icons with a ligature font (Material Symbols):
+   overriding the font on those spans prints their names, e.g. "_arrow_right". */
+.stApp, .stMarkdown, .stTextInput input, .stTextArea textarea, .stButton button,
+[data-testid="stWidgetLabel"], [data-testid="stExpander"] summary p, .stSlider, .stPills {
   font-family: 'Schibsted Grotesk', system-ui, sans-serif;
+}
+[data-testid="stIconMaterial"], .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded' !important;
 }
 .stTextArea textarea, .pw-agent pre, .pw-findings code {
   font-family: 'IBM Plex Mono', ui-monospace, monospace !important;

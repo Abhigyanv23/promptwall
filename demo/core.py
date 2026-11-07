@@ -20,7 +20,10 @@ import socket
 import time
 from urllib.parse import urljoin, urlsplit
 
-from promptwall import Firewall, __version__
+from promptwall import Firewall, __version__, sanitize_text
+from promptwall.firewall import BLOCK_NOTICE
+from promptwall.models import BLOCK_THRESHOLD, SANITIZE_THRESHOLD
+from promptwall.scanner import normalize
 
 MAX_BYTES = 2_000_000
 TIMEOUT_S = 10
@@ -101,27 +104,46 @@ def fetch_url(url: str) -> str:
 
 # ---------------------------------------------------------------- analysis
 
-def analyze(content: str, as_text: bool = False) -> dict:
-    """Scan content and return the verdict plus what was found, hidden and passed on."""
+def analyze(content: str, as_text: bool = False, *, sanitize_at: float = SANITIZE_THRESHOLD,
+            block_at: float = BLOCK_THRESHOLD) -> dict:
+    """Scan content and return the verdict plus what was found, hidden and passed on.
+
+    sanitize_at / block_at move the two risk thresholds (the demo's strictness
+    slider). The risk score itself does not change; only which verdict it maps to.
+    """
     content = (content or "")[:MAX_INPUT_CHARS]
     if not content.strip():
         raise ValueError("Paste some HTML or text first.")
+    if not 0 < sanitize_at <= block_at <= 1:
+        raise ValueError("Thresholds must satisfy 0 < sanitize ≤ block ≤ 1.")
     fw = firewall()
     t0 = time.perf_counter()
     result = (fw.scanner.scan_plain(content) if as_text else fw.scanner.scan_html(content))
-    decision = fw._decide(result, content, None, t0)
+    risk = result.risk_score
+    verdict = "block" if risk >= block_at else "sanitize" if risk >= sanitize_at else "allow"
+    removed: list[str] = []
+    # Same three outcomes as Firewall._decide, with the chosen thresholds.
+    if verdict == "block":
+        safe = BLOCK_NOTICE.format(risk=risk)
+    elif verdict == "sanitize":
+        cleaned = sanitize_text(result.visible_text, fw.scanner)
+        safe, removed = cleaned.text, cleaned.removed
+    else:
+        safe = normalize(result.visible_text)
     return {
-        "verdict": decision.verdict,
-        "risk": decision.risk_score,
-        "latency_ms": round(decision.latency_ms, 1),
+        "verdict": verdict,
+        "risk": risk,
+        "sanitize_at": sanitize_at,
+        "block_at": block_at,
+        "latency_ms": round((time.perf_counter() - t0) * 1000, 1),
         "ml_enabled": fw.scanner.classifier is not None,
         "findings": [[f.rule_id, f.severity.value, f.location, f.snippet[:160]]
-                     for f in decision.findings],
+                     for f in result.findings],
         "hidden": [[s.reason, s.text[:300]] for s in result.hidden_spans],
-        "removed": decision.removed,
+        "removed": removed,
         "visible_text": result.visible_text,
-        "safe_text": decision.safe_text,
-        "llm_input": fw.wrap_untrusted(decision.safe_text),
+        "safe_text": safe,
+        "llm_input": fw.wrap_untrusted(safe),
     }
 
 

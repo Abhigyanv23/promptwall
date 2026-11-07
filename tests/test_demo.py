@@ -108,3 +108,24 @@ def test_view_strikes_the_lines_the_sanitizer_removed():
     html = view.human_view_html(r)
     assert html.count('class="pw-cut"') == len(r["removed"])
     assert "We caught the 6 pm train" in html.split('class="pw-cut"')[-1]   # kept line not struck
+
+
+def test_thresholds_move_the_verdict_but_not_the_risk():
+    page = core.EXAMPLES["Visible instruction in a blog post"]       # risk 0.45
+    default = core.analyze(page)
+    strict = core.analyze(page, sanitize_at=0.2, block_at=0.4)
+    lenient = core.analyze(page, sanitize_at=0.6, block_at=0.9)
+    assert default["risk"] == strict["risk"] == lenient["risk"]
+    assert (default["verdict"], strict["verdict"], lenient["verdict"]) == ("sanitize", "block", "allow")
+    assert lenient["removed"] == [] and "new instructions" in lenient["llm_input"]
+    with pytest.raises(ValueError):
+        core.analyze(page, sanitize_at=0.8, block_at=0.4)
+
+
+def test_default_thresholds_match_the_firewall():
+    """With default thresholds the demo must say exactly what Firewall.inspect says."""
+    from promptwall import Firewall
+    fw = Firewall()
+    for page in core.EXAMPLES.values():
+        d, r = fw.inspect(page), core.analyze(page)
+        assert (r["verdict"], r["safe_text"], r["removed"]) == (d.verdict, d.safe_text, d.removed)

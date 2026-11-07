@@ -65,13 +65,40 @@ with st.expander("Page source (paste your own HTML or text here)"):
                  label_visibility="collapsed")
     as_text = st.toggle("This is plain text (a tool result or email), not HTML")
 
+DEFAULT_THRESHOLDS = (core.SANITIZE_THRESHOLD, core.BLOCK_THRESHOLD)
+
+
+if "thresholds" not in st.session_state:   # set here, not via value=, so Reset can change it
+    st.session_state.thresholds = DEFAULT_THRESHOLDS
+
+
+def reset_thresholds():
+    st.session_state.thresholds = DEFAULT_THRESHOLDS
+
+
+# The verdict is drawn above the strictness slider but depends on it, so
+# reserve its place first and fill it once the slider's value is known.
+verdict_slot = st.empty()
+slider_col, reset_col, _ = st.columns([3, 1, 2], vertical_alignment="bottom")
+sanitize_at, block_at = slider_col.slider(
+    "Strictness: drag where the verdict changes (sanitize from, block from)",
+    min_value=0.05, max_value=1.0, step=0.05, key="thresholds",
+    help="The risk score stays the same; this moves the two thresholds it is compared with. "
+         "Lower = stricter: more pages get sanitized or blocked, including harmless ones.")
+reset_col.button("Reset to defaults", on_click=reset_thresholds,
+                 disabled=(sanitize_at, block_at) == DEFAULT_THRESHOLDS)
+
 try:
-    r = core.analyze(st.session_state.content, as_text=as_text)
-except ValueError:
-    st.info("The page source is empty. Pick an example or paste a page to check it.")
+    r = core.analyze(st.session_state.content, as_text=as_text,
+                     sanitize_at=sanitize_at, block_at=block_at)
+except ValueError as e:
+    message = str(e)
+    if "Threshold" not in message:
+        message = "The page source is empty. Pick an example or paste a page to check it."
+    verdict_slot.info(message)
     st.stop()
 
-st.markdown(view.verdict_html(r), unsafe_allow_html=True)
+verdict_slot.markdown(view.verdict_html(r), unsafe_allow_html=True)
 
 human, agent = st.columns(2, gap="medium")
 human.markdown(view.human_view_html(r), unsafe_allow_html=True)
