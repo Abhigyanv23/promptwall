@@ -1,6 +1,7 @@
 # promptwall
 
 [![CI](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/promptwall-agent)](https://pypi.org/project/promptwall-agent/)
 [![Live demo](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://promptwall.streamlit.app)
 
 **A prompt-injection firewall for browsing agents** — a middleware layer that sits between an
@@ -39,8 +40,7 @@ Python 3.11+. The PyPI package is named **`promptwall-agent`** (the name `prompt
 you still `import promptwall` and run `promptwall`.
 
 ```bash
-pip install promptwall-agent         # after the first PyPI release; until then:
-pip install "git+https://github.com/Abhigyanv23/promptwall"
+pip install promptwall-agent
 
 promptwall page.html                 # JSON verdict, exit code 1 on block
 promptwall page.html --show-text     # also print what the LLM would receive

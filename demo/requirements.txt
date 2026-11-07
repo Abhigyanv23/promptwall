@@ -1,6 +1,4 @@
 # Installed by Streamlit Community Cloud (it reads requirements.txt next to the app file).
-# promptwall comes straight from GitHub; after the PyPI release this line can be
-# replaced with: promptwall-agent==0.3.0
-promptwall-agent @ git+https://github.com/Abhigyanv23/promptwall@main
+promptwall-agent==0.3.0
 requests>=2.31
 streamlit==1.65.0
