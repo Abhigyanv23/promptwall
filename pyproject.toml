@@ -1,20 +1,46 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]   # 77+: SPDX license field
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "promptwall"
-version = "0.2.0"
-description = "Prompt-injection firewall for browsing agents"
+# "promptwall" on PyPI belongs to an unrelated project, so the distribution is
+# published as promptwall-agent. The import name is unchanged: `import promptwall`.
+name = "promptwall-agent"
+version = "0.3.0"
+description = "Prompt-injection firewall for browsing agents: finds hidden instructions in web pages, redacts them, and logs attempts"
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = ["beautifulsoup4>=4.12"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Abhigyan Varma" }]
+# scikit-learn 1.9 (which the shipped model is pickled with) needs Python 3.11+.
+requires-python = ">=3.11"
+keywords = ["prompt injection", "llm security", "ai agents", "browsing agents", "firewall",
+            "guardrails"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# The ML layer catches most attacks, so it is installed by default.
+dependencies = ["beautifulsoup4>=4.12", "scikit-learn>=1.9", "joblib>=1.3"]
 
 [project.optional-dependencies]
-ml = ["scikit-learn>=1.9", "joblib>=1.3"]
+ml = []                       # kept so older install commands still work
 render = ["playwright>=1.40"]
 transformer = ["torch>=2.1", "transformers>=4.40", "sentencepiece", "huggingface_hub"]
-dev = ["pytest>=8", "scikit-learn>=1.9", "joblib>=1.3"]
+dev = ["pytest>=8", "requests>=2.31"]   # requests: demo fetcher tests
+
+[project.urls]
+Homepage = "https://github.com/Abhigyanv23/promptwall"
+Source = "https://github.com/Abhigyanv23/promptwall"
+Issues = "https://github.com/Abhigyanv23/promptwall/issues"
+Benchmark = "https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/RESULTS.md"
 
 [project.scripts]
 promptwall = "promptwall.__main__:main"

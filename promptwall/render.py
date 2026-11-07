@@ -16,7 +16,7 @@ benchmark to serve an "external" stylesheet). Downloads and service workers
 are disabled. Not covered: shadow DOM, iframes, and text injected later than
 `settle_ms` after load (e.g. setTimeout(..., 10000)).
 
-    pip install "promptwall[render]" && playwright install chromium
+    pip install "promptwall-agent[render]" && playwright install chromium
 """
 from __future__ import annotations
 

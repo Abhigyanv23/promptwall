@@ -18,7 +18,7 @@ Chunks below it keep their TF-IDF score, which is far below the transformer's
 threshold, so they cannot raise a finding. This trades a little recall for a
 large CPU speed-up; the benchmark measures both settings.
 
-    pip install "promptwall[transformer]"
+    pip install "promptwall-agent[transformer]"
 """
 from __future__ import annotations
 

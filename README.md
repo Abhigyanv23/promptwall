@@ -1,5 +1,7 @@
 # promptwall
 
+[![CI](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhigyanv23/promptwall/actions/workflows/ci.yml)
+
 **A prompt-injection firewall for browsing agents** — a middleware layer that sits between an
 LLM agent and the web pages, documents and tool outputs it reads. It detects instructions aimed
 at the agent, strips content a human reader never sees, redacts suspicious text, and logs every
@@ -30,17 +32,29 @@ Shipped with a **public, reproducible benchmark** that reports what it catches *
 
 ## Quick start
 
+Python 3.11+. The PyPI package is named **`promptwall-agent`** (the name `promptwall` was taken);
+you still `import promptwall` and run `promptwall`.
+
 ```bash
-pip install -e ".[ml]"
+pip install promptwall-agent         # after the first PyPI release; until then:
+pip install "git+https://github.com/Abhigyanv23/promptwall"
+
 promptwall page.html                 # JSON verdict, exit code 1 on block
 promptwall page.html --show-text     # also print what the LLM would receive
 promptwall tool_output.txt --text --log logs/attempts.jsonl
 
 # Rendered mode (headless Chromium): sees external-CSS hiding and JavaScript-added text
-pip install -e ".[ml,render]" && playwright install chromium
+pip install "promptwall-agent[render]" && playwright install chromium
 promptwall page.html --render        # page's own network requests stay blocked
 promptwall https://example.com --url # render a live URL (network allowed)
 ```
+
+**Live demo:** [`demo/`](https://github.com/Abhigyanv23/promptwall/blob/main/demo/app.py) is a
+Gradio app: paste a page or fetch a public URL and see the verdict, the findings, the text hidden
+from humans, and what the LLM receives. Run it with `pip install gradio requests -e .` then
+`python demo/app.py`, or deploy the four files in `demo/` as a Hugging Face Space. Its URL fetcher
+is an SSRF risk by nature, so it only reaches public addresses, re-checks every redirect, and caps
+time (10 s) and size (2 MB); `tests/test_demo.py` covers this.
 
 ```python
 from promptwall import Firewall
@@ -63,8 +77,8 @@ with Renderer() as r:                         # network blocked unless allow_net
 
 Benchmark: **1,932 attack pages** (161 held-out attack goals × 6 templates × 11 delivery
 techniques, injected into 60 real web pages), **63 real benign pages**, plus 1,118 text-level
-cases. Full tables: [`bench/results/RESULTS.md`](bench/results/RESULTS.md). Every miss:
-[`bench/results/misses.csv`](bench/results/misses.csv).
+cases. Full tables: [`bench/results/RESULTS.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/RESULTS.md). Every miss:
+[`bench/results/misses.csv`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/misses.csv).
 
 ### Headline: does the attack text reach the LLM?
 
@@ -101,7 +115,7 @@ which would otherwise add ~9 points to every row and blur the template finding):
 
 | Gap | Result | Why |
 |---|---|---|
-| **Paraphrased / unseen phrasing** | 21% on "TODO" and plain-goal templates; a hand-written paraphrase scores 0.19 vs threshold 0.56 | The TF-IDF model learned template *wording*, not *intent* ([`tests/test_ml.py`](tests/test_ml.py) keeps this as a strict xfail) |
+| **Paraphrased / unseen phrasing** | 21% on "TODO" and plain-goal templates; a hand-written paraphrase scores 0.19 vs threshold 0.56 | The TF-IDF model learned template *wording*, not *intent* ([`tests/test_ml.py`](https://github.com/Abhigyanv23/promptwall/blob/main/tests/test_ml.py) keeps this as a strict xfail) |
 | **Polite plain requests in tool output** (InjecAgent "base") | **0%** of 300 | "Please unlock my front door." looks like ordinary text; nothing marks it as an attack |
 | **Sparse homoglyphs** | not tested | Homoglyphs are now caught (run 4: 100% flagged, 0% reach the LLM), but detection needs 3+ mixed-script words; swapping letters in only one or two words stays under that threshold |
 | **JS-injected text** | static: dropped, never scanned; rendered: 55% flagged, 39% reach the LLM | Static mode removes `<script>`, so it also drops legitimate JS-rendered content. Rendered mode (Phase 4) sees it and treats it as visible text, with visible text's weakness |
@@ -118,7 +132,7 @@ payloads in tool output (100%), Tensor Trust human-written jailbreaks (95%), ben
 a human could see it: computed `display`, `visibility`, opacity through all ancestors, font size,
 text colour against the real background, off-screen position, clipping and zero size. That closes
 the two gaps static parsing cannot: hiding by an **external stylesheet** and text added by
-**JavaScript**. Full tables: [`bench/results/RESULTS_rendered.md`](bench/results/RESULTS_rendered.md).
+**JavaScript**. Full tables: [`bench/results/RESULTS_rendered.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/RESULTS_rendered.md).
 
 | | Static mode | **Rendered mode** |
 |---|---|---|
@@ -142,7 +156,7 @@ wait for scripts that inject text shortly after load; it is configurable (`settl
 
 ### Baselines: Prompt Guard 2 and ProtectAI DeBERTa
 
-[`bench/baselines.py`](bench/baselines.py) scores a neural detector on the **identical** cases and
+[`bench/baselines.py`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/baselines.py) scores a neural detector on the **identical** cases and
 compares case-for-case with promptwall. It feeds each model the page's extracted text in 512-token
 windows (as Meta's model card advises) and takes the worst window. Host pages a baseline flags on
 their own are dropped from the attack comparison for both detectors.
@@ -152,7 +166,7 @@ scanner), default threshold 0.5. (These runs predate the tokenizer fix described
 Guard below. A check after the fix showed transformers tokenizes this model exactly as its
 `tokenizer.json` does, and every recomputed figure matched to the point, so the results stand.)
 Full tables:
-[`bench/results/BASELINE_protectai.md`](bench/results/BASELINE_protectai.md).
+[`bench/results/BASELINE_protectai.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/BASELINE_protectai.md).
 
 | | ProtectAI DeBERTa v2 | **promptwall** |
 |---|---|---|
@@ -181,7 +195,7 @@ emails, so part of that sensitivity is a general readiness to flag imperative te
 
 **Sensitivity check: 128-token windows.** 512-token windows might dilute a short payload with
 surrounding page text, so the run was repeated with 128-token windows
-([`BASELINE_protectai_w128.md`](bench/results/BASELINE_protectai_w128.md)). ProtectAI now flags 38
+([`BASELINE_protectai_w128.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/BASELINE_protectai_w128.md)). ProtectAI now flags 38
 of the 60 hosts on its own, leaving 708 attack pages to compare:
 
 | | ProtectAI, 128-token windows | **promptwall** (same pages) |
@@ -209,12 +223,12 @@ figures are less precise.
 **Meta Llama Prompt Guard 2 (86M and 22M)**, the strongest baselines. A single default-threshold
 comparison is not enough here, because at threshold 0.5 Prompt Guard raises fewer false alarms
 (1 of 63 pages) than promptwall (3 of 63). So each was also **swept to promptwall's false-positive
-rate** with [`bench/sweep.py`](bench/sweep.py): the lowest threshold that still flags no more than
+rate** with [`bench/sweep.py`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/sweep.py): the lowest threshold that still flags no more than
 3 of the 63 benign pages. Full tables:
-[`BASELINE_promptguard2-86m.md`](bench/results/BASELINE_promptguard2-86m.md),
-[`SWEEP_promptguard2-86m.md`](bench/results/SWEEP_promptguard2-86m.md),
-[`BASELINE_promptguard2-22m.md`](bench/results/BASELINE_promptguard2-22m.md),
-[`SWEEP_promptguard2-22m.md`](bench/results/SWEEP_promptguard2-22m.md).
+[`BASELINE_promptguard2-86m.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/BASELINE_promptguard2-86m.md),
+[`SWEEP_promptguard2-86m.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/SWEEP_promptguard2-86m.md),
+[`BASELINE_promptguard2-22m.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/BASELINE_promptguard2-22m.md),
+[`SWEEP_promptguard2-22m.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/SWEEP_promptguard2-22m.md).
 
 **At the same false-positive rate (4.8%), promptwall catches twice as many attack pages:**
 
@@ -251,7 +265,7 @@ structurally rather than by classifier. On plain visible text the gap is smalles
 **A tokenizer bug in the first Prompt Guard runs, found and fixed.** The first 22M run flagged
 under 10% even of InjecAgent's blatant "IMPORTANT!!! Ignore all previous instructions…" tool
 outputs, far below Meta's reported 88.7% recall at 1% false positives.
-[`bench/check_model.py`](bench/check_model.py) found the cause: **transformers 5 rebuilds DeBERTa
+[`bench/check_model.py`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/check_model.py) found the cause: **transformers 5 rebuilds DeBERTa
 tokenizers from their SentencePiece model and silently drops the custom pre-tokenization in the
 repository's `tokenizer.json`**, the adversarial-resistant tokenization Meta's card describes. The
 model was being fed tokens it was never trained on:
@@ -282,7 +296,7 @@ Can a small fine-tuned transformer replace the TF-IDF model? I fine-tuned **DeBE
 (22M parameters) on exactly the same training data as TF-IDF, from the same `build()` function
 with the same splits and the same held-out templates. Its threshold uses the same calibration
 rule. Only the model differs. Training takes 3 minutes on a free Colab T4
-([notebook](notebooks/train_transformer_colab.ipynb)).
+([notebook](https://github.com/Abhigyanv23/promptwall/blob/main/notebooks/train_transformer_colab.ipynb)).
 
 The transformer flags 5 of the benign host pages on its own, so those pages can't carry attack
 payloads. Both models are therefore compared on the **same 1,772 attack pages built on the
@@ -342,7 +356,7 @@ here", scored 1.00. Validation estimated a 5.6% page FPR on 18 pages; the test p
 | [Tensor Trust](https://github.com/HumanCompatibleAI/tensor-trust-data) | human-written attacks (half train, half test) |
 | [Mozilla Readability test pages](https://github.com/mozilla/readability) | 130 real-world pages (news, blogs, docs; several languages) as benign hosts |
 
-**No leakage** (all splits defined in [`bench/sources.py`](bench/sources.py), by hash):
+**No leakage** (all splits defined in [`bench/sources.py`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/sources.py), by hash):
 - Classifier training uses only BIPIA-train goals, the train half of Tensor Trust, 49 "fit" pages
   and BIPIA-train contexts. Thresholds are set on 18 separate "val" pages.
 - Evaluation uses 63 untouched test pages and goals from InjecAgent, AgentDojo and BIPIA-test.
@@ -366,7 +380,7 @@ mixed-script words, for matching only (the LLM still receives the page's real te
 Greek pages are untouched). Homoglyph attacks went from 92% reaching the LLM to 0%. This gap was
 listed in advance as an expected miss; no thresholds changed.
 
-Run 1 ([`bench/results/history/run1_RESULTS.md`](bench/results/history/run1_RESULTS.md)) was
+Run 1 ([`bench/results/history/run1_RESULTS.md`](https://github.com/Abhigyanv23/promptwall/blob/main/bench/results/history/run1_RESULTS.md)) was
 unusable. The fixes: skip ML on fragments under 6 words; stop escalating weak signals just because
 content is hidden (real sites hide menus, modals and login forms); calibrate the ML threshold at
 page level on val pages; narrow the "email … password" rule; batch ML calls per page; redact whole
@@ -419,6 +433,8 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 - [ ] Transformer: add web boilerplate (ASCII art, menus, template comments) to training negatives
 - [x] Rendered mode (Playwright): computed styles, JS-added text, external CSS (Phase 4)
 - [ ] Rendered mode: shadow DOM, iframes, text injected long after load
+- [x] Packaging (`promptwall-agent`), CI on Linux and Windows, trusted-publishing release workflow,
+      live demo app (Phase 6)
 - [ ] PDF/DOCX extraction; HTTP proxy mode
 - [ ] Fresh, independently collected benign set for FPR
 
@@ -426,9 +442,15 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 
 ```
 promptwall/   extract.py  render.py  scanner.py  patterns.py  unicode_checks.py  confusables.py  ml.py
-              sanitize.py  firewall.py  log.py  models.py  __main__.py  data/classifier.joblib
+              sanitize.py  firewall.py  log.py  models.py  transformer_ml.py  __main__.py
+              data/classifier.joblib
 bench/        fetch_sources.sh  sources.py  deliveries.py  hard_negatives.py  cases.py
-              train_classifier.py  run_benchmark.py  run_rendered.py  baselines.py  results/
-tests/        test_scanner.py  test_firewall.py  test_ml.py  test_confusables.py
-              test_baseline_windows.py  test_render.py
+              train_classifier.py  train_transformer.py  run_benchmark.py  run_rendered.py
+              baselines.py  sweep.py  check_model.py  results/
+demo/         app.py (Gradio UI)  core.py (analysis + safe URL fetcher)  requirements.txt  README.md
+notebooks/    train_transformer_colab.ipynb
+tests/        test_scanner.py  test_firewall.py  test_ml.py  test_confusables.py  test_render.py
+              test_baseline_windows.py  test_transformer_ml.py  test_demo.py  test_version.py
+.github/      workflows/ci.yml (tests, render, package)  workflows/publish.yml (PyPI release)
+RELEASING.md  one-time PyPI setup and the release checklist
 ```

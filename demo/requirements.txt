@@ -1,0 +1,5 @@
+# Installed on the Hugging Face Space (Gradio itself comes from sdk_version in README.md).
+# Installs promptwall straight from GitHub; after the PyPI release this can be
+# replaced with: promptwall-agent==0.3.0
+promptwall-agent @ git+https://github.com/Abhigyanv23/promptwall@main
+requests>=2.31
