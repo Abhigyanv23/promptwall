@@ -425,22 +425,38 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 
 ## Roadmap
 
-- [x] Fold Unicode confusables (homoglyphs) before detection (run 4)
-- [x] Baseline script for Prompt Guard 2 / ProtectAI DeBERTa on identical cases
-- [x] ProtectAI DeBERTa v2 baseline
-- [x] Prompt Guard 2 86M and 22M baselines, with the tokenizer fix
-- [x] Threshold sweep: Prompt Guard at promptwall's false-positive rate
-- [x] Check whether the tokenizer fix changes the ProtectAI results (it does not)
-- [x] ProtectAI with 128-token windows (sensitivity check)
-- [x] Small transformer (DeBERTa-v3-xsmall) fine-tuned and calibrated on the same chunks: better
-      recall and paraphrase handling, +3 pts page FPR, 30-100× CPU cost; TF-IDF stays default
-- [ ] Transformer: add web boilerplate (ASCII art, menus, template comments) to training negatives
-- [x] Rendered mode (Playwright): computed styles, JS-added text, external CSS (Phase 4)
-- [ ] Rendered mode: shadow DOM, iframes, text injected long after load
-- [x] Packaging (`promptwall-agent`), CI on Linux and Windows, trusted-publishing release workflow,
-      live demo app (Phase 6)
-- [ ] PDF/DOCX extraction; HTTP proxy mode
-- [ ] Fresh, independently collected benign set for FPR
+**Done (v0.1–v0.3)**
+
+- [x] Static extraction, Unicode normalization, 10 rules, TF-IDF classifier, sanitizer, JSONL log
+- [x] Public benchmark with held-out attack templates and a "reached the LLM" metric
+- [x] Unicode confusables (homoglyphs) folded before detection
+- [x] Baselines: ProtectAI DeBERTa v2 and Prompt Guard 2 (86M, 22M), with the tokenizer fix and a
+      threshold sweep at promptwall's false-positive rate
+- [x] Rendered mode (Playwright): computed styles, JavaScript-added text, external CSS
+- [x] Fine-tuned DeBERTa-v3-xsmall classifier: better recall and paraphrase handling, +3 points of
+      page false positives, 30–100× the CPU cost; TF-IDF stays the default
+- [x] Packaging as `promptwall-agent`, CI on Linux and Windows, trusted-publishing releases,
+      live demo
+
+**Next (v0.4): quick wins**
+
+- [ ] Sentence-level redaction, plus a metric for harmless sentences removed
+- [ ] Benchmark regression check in CI; results attached to each release
+- [ ] LangChain and MCP wrappers, with examples
+- [ ] Demo: connect to the checked IP (closes DNS rebinding) and rate-limit requests
+
+**Then (v0.5): more trustworthy numbers, wider coverage**
+
+- [ ] A fresh, independent benign set of 500+ pages, with confidence intervals
+- [ ] Transformer retrained with web boilerplate as negatives, hosted on Hugging Face
+- [ ] Rendered mode: shadow DOM, iframes, text injected after load
+- [ ] PDF and DOCX extraction
+
+**Later: the hard problems**
+
+- [ ] Plain-language attacks (~28% caught today), including task-aware checking
+- [ ] HTTP proxy mode for agents that fetch pages themselves
+- [ ] OCR for instructions drawn inside images
 
 ## Layout
 
