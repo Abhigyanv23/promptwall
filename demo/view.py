@@ -111,21 +111,23 @@ def human_view_html(r: dict) -> str:
             return f'<p class="pw-cut" title="Removed before the agent reads it">{escape(p)}</p>'
         return f"<p>{escape(p)}</p>"
 
-    body = "".join(line(p) for p in paras[:60])
-    if len(paras) > 60:
-        body += f'<p class="pw-note">…and {len(paras) - 60} more lines.</p>'
+    body = "".join(line(p) for p in paras[:400])
+    if len(paras) > 400:
+        body += f'<p class="pw-note">…and {len(paras) - 400} more lines.</p>'
     hidden = "".join(
         f'<div class="pw-hidden"><span class="pw-hidden-how">Hidden by '
         f'{escape(describe_hiding(reason))}</span><p>{escape(text)}</p></div>'
-        for reason, text in r["hidden"][:30])
+        for reason, text in r["hidden"][:200])
     if hidden:
         hidden = ('<h4>Hidden from people, but present in the page</h4>' + hidden)
-    return f'<div class="pw-panel pw-human"><h3>What a person sees</h3>{body}{hidden}</div>'
+    return ('<div class="pw-panel pw-human"><h3>What a person sees</h3>'
+            f'<div class="pw-scroll" tabindex="0" aria-label="What a person sees">{body}{hidden}</div></div>')
 
 
 def agent_view_html(r: dict) -> str:
     return ('<div class="pw-panel pw-agent"><h3>What the agent receives</h3>'
-            f'<pre>{escape(r["llm_input"])}</pre></div>')
+            '<div class="pw-scroll" tabindex="0" aria-label="What the agent receives">'
+            f'<pre>{escape(r["llm_input"])}</pre></div></div>')
 
 
 def findings_html(r: dict) -> str:
@@ -238,6 +240,15 @@ CSS = """
 }
 .pw-hidden p { margin: 0.25rem 0 0; font-size: 0.95rem; }
 .pw-hidden-how { font-size: 0.85rem; font-weight: 700; color: var(--pw-sanitize); }
+/* Both views scroll inside a fixed height, so a long page doesn't push the findings
+   far down. The heading stays put; tabindex lets keyboard users scroll them too. */
+.pw-scroll {
+  max-height: 28rem; overflow-y: auto; padding-right: 0.5rem;
+  scrollbar-width: thin; scrollbar-color: #AEB7C4 transparent;
+}
+.pw-scroll::-webkit-scrollbar { width: 8px; }
+.pw-scroll::-webkit-scrollbar-thumb { background: #AEB7C4; border-radius: 4px; }
+.pw-scroll:focus-visible { outline: 2px solid var(--pw-blue); outline-offset: 2px; }
 .pw-agent pre {
   white-space: pre-wrap; margin: 0; font-size: 0.86rem; line-height: 1.55;
   background: #EEF1F5; color: var(--pw-ink); padding: 0.9rem 1rem; border-radius: 4px;
