@@ -49,12 +49,13 @@ promptwall page.html --render        # page's own network requests stay blocked
 promptwall https://example.com --url # render a live URL (network allowed)
 ```
 
-**Live demo:** [`demo/`](https://github.com/Abhigyanv23/promptwall/blob/main/demo/app.py) is a
-Gradio app: paste a page or fetch a public URL and see the verdict, the findings, the text hidden
-from humans, and what the LLM receives. Run it with `pip install gradio requests -e .` then
-`python demo/app.py`, or deploy the four files in `demo/` as a Hugging Face Space. Its URL fetcher
-is an SSRF risk by nature, so it only reaches public addresses, re-checks every redirect, and caps
-time (10 s) and size (2 MB); `tests/test_demo.py` covers this.
+**Live demo:** [`demo/`](https://github.com/Abhigyanv23/promptwall/blob/main/demo/README.md) is a
+small web app. Paste a page or fetch a public URL, and it shows the verdict, the findings, the text
+hidden from humans, and what the LLM receives. It deploys free on Streamlit Community Cloud
+(steps in `demo/README.md`); run it locally with `streamlit run demo/streamlit_app.py`. A Gradio
+version is also included. A URL fetcher is an SSRF risk by nature, so the demo only reaches public
+addresses, re-checks every redirect, and caps time (10 s) and size (2 MB). `tests/test_demo.py`
+covers this.
 
 ```python
 from promptwall import Firewall
@@ -447,7 +448,8 @@ promptwall/   extract.py  render.py  scanner.py  patterns.py  unicode_checks.py 
 bench/        fetch_sources.sh  sources.py  deliveries.py  hard_negatives.py  cases.py
               train_classifier.py  train_transformer.py  run_benchmark.py  run_rendered.py
               baselines.py  sweep.py  check_model.py  results/
-demo/         app.py (Gradio UI)  core.py (analysis + safe URL fetcher)  requirements.txt  README.md
+demo/         core.py (analysis + safe URL fetcher)  streamlit_app.py  app.py (Gradio)
+              requirements.txt  README.md
 notebooks/    train_transformer_colab.ipynb
 tests/        test_scanner.py  test_firewall.py  test_ml.py  test_confusables.py  test_render.py
               test_baseline_windows.py  test_transformer_ml.py  test_demo.py  test_version.py
