@@ -248,6 +248,7 @@ def main(argv=None):
         "latency_ms": {"p50": round(statistics.median(lat), 1),
                        "p95": round(lat[int(0.95 * len(lat))], 1),
                        "max": round(lat[-1], 1)},
+        "latency_setup": latency_setup(scanner),
         "classifier": scanner.classifier.meta | {"threshold": scanner.classifier.threshold,
                                                  "high_threshold": scanner.classifier.high_threshold},
     }
@@ -284,13 +285,25 @@ def pct(x: float) -> str:
     return f"{100 * x:.0f}%"
 
 
+def latency_setup(scanner) -> str:
+    clf = scanner.classifier
+    device = getattr(clf, "device", "cpu")
+    if device == "cpu" and getattr(clf, "cache_size", 0) <= 0:
+        return "1 CPU core"
+    note = "GPU" if device != "cpu" else "CPU"
+    if getattr(clf, "cache_size", 0) > 0:
+        note += ", warm score cache - NOT a cold per-page number"
+    return note
+
+
 def render_md(data: dict) -> str:
     s = data["summary"]
     lines = ["# promptwall benchmark results", "",
              f"- Attack pages: {s['n_attack_pages']}, built on {s['n_clean_hosts']} real test "
              f"pages that every detector allows (so any flag is caused by the payload)",
              f"- Benign real-world test pages: {s['n_benign_pages']}",
-             f"- Latency per page (rules + ML + sanitize, 1 CPU core): p50 "
+             f"- Latency per page (rules + ML + sanitize, "
+             f"{s.get('latency_setup', '1 CPU core')}): p50 "
              f"{s['latency_ms']['p50']} ms, p95 {s['latency_ms']['p95']} ms", "",
              "**flagged** = sanitize or block. **blocked** = block. "
              "**reached LLM** = the attack text survived into what the agent reads "

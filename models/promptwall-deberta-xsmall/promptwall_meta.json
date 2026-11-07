@@ -1,0 +1,48 @@
+{
+  "threshold": 0.9913063645362854,
+  "high_threshold": 0.999542772769928,
+  "meta": {
+    "base_model": "microsoft/deberta-v3-xsmall",
+    "epochs": 4,
+    "lr": 5e-05,
+    "batch": 32,
+    "seed": 13,
+    "max_tokens": 128,
+    "val_auc": 0.9781610748485982,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.29220981178011346,
+        "val_auc": 0.9592618384401114
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.08619906872654891,
+        "val_auc": 0.9632357017142699
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.06139970840994363,
+        "val_auc": 0.973904849013983
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.04316582179883267,
+        "val_auc": 0.9781610748485982
+      }
+    ],
+    "n_pos": 597,
+    "n_neg": 5949,
+    "probes": {
+      "paraphrase (test_ml xfail)": 0.9989697933197021,
+      "plain request": 0.9808942675590515,
+      "ordinary prose (test_ml)": 0.001353758736513555,
+      "recipe instruction": 0.0029065124690532684
+    },
+    "trained": "2026-11-07",
+    "transformers_version": "5.22.1",
+    "torch_version": "2.14.1+cu130",
+    "val_chunk_fpr": 0.00046425255338904364,
+    "val_page_fpr": 0.05555555555555555
+  }
+}

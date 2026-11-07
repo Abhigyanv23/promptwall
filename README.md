@@ -276,6 +276,60 @@ python bench/sweep.py --model promptguard2-86m            # its detection at pro
 python bench/check_model.py --model promptguard2-22m      # sanity-check a model before trusting it
 ```
 
+### A transformer in place of TF-IDF (Phase 5)
+
+Can a small fine-tuned transformer replace the TF-IDF model? I fine-tuned **DeBERTa-v3-xsmall**
+(22M parameters) on exactly the same training data as TF-IDF, from the same `build()` function
+with the same splits and the same held-out templates. Its threshold uses the same calibration
+rule. Only the model differs. Training takes 3 minutes on a free Colab T4
+([notebook](notebooks/train_transformer_colab.ipynb)).
+
+The transformer flags 5 of the benign host pages on its own, so those pages can't carry attack
+payloads. Both models are therefore compared on the **same 1,772 attack pages built on the
+remaining 55 hosts**; the TF-IDF column is recomputed case by case from `per_case.jsonl`.
+(≈: transformer totals are weighted from its per-delivery table, which is rounded to whole percents.)
+
+| | TF-IDF (shipped) | transformer | transformer, cascade |
+|---|---|---|---|
+| Attack text that **reached the LLM** | 7.6% | **≈5.3%** | **≈5.3%** |
+| Attack pages flagged | 64.6% | **≈72%** | ≈72% |
+| Visible-paragraph attacks reaching the LLM | 43% | **29%** | 29% |
+| Held-out "plain" template flagged (never seen in training) | 28% | **38%** | 38% |
+| Held-out "todo" template flagged | 29% | **50%** | 50% |
+| Paraphrase probe (`test_ml` strict xfail) | p=0.19, missed | **p=0.999, caught** | caught |
+| False positives, 63 real pages | **5% (3)** | 8% (5) | 8% (5) |
+| Hand-written hard negatives flagged (n=10) | 60% | 60% | 60% |
+| CPU latency per page, p50 / p95 (cold) | **79 / 280 ms** | 8,237 / 21,619 ms | 2,408 / 7,887 ms |
+
+The **cascade** runs TF-IDF first and sends only chunks scoring at least 0.02 to the transformer.
+That was 40% of chunks (594 of 1,481). Its results are identical to the transformer's on every
+headline row, because a chunk TF-IDF scores below 0.02 essentially never crosses the
+transformer's 0.99 threshold.
+
+**Verdict: TF-IDF stays the default.**
+- The transformer generalizes better. It catches templates and paraphrases it never saw, and it
+  cuts the attack text reaching the LLM by about a third.
+- On a CPU, though, it is 30× slower even as a cascade.
+- Its false positives are confidently wrong (p=1.00): ASCII-art banners in HTML comments, a
+  language-picker list, a font list. No threshold removes errors like these; they need more
+  boilerplate in the training data.
+
+The transformer is the right choice when a GPU is available. Use it like this:
+
+```python
+from promptwall import Scanner
+from promptwall.ml import InjectionClassifier
+from promptwall.transformer_ml import TransformerClassifier
+
+clf = TransformerClassifier("models/promptwall-deberta-xsmall",
+                            prefilter=InjectionClassifier.load_default())   # cascade
+scanner = Scanner(classifier=clf)
+```
+
+Its calibrated threshold is 0.991. That is very high, a sign of an overconfident model: the
+validation set's top-scoring benign chunks are template comments like "insert navigation menus
+here", scored 1.00. Validation estimated a 5.6% page FPR on 18 pages; the test pages measured 8%.
+
 ## Methodology
 
 **Data** (all public, cloned by `bench/fetch_sources.sh`, nothing redistributed):
@@ -360,8 +414,9 @@ detection and false-positive figure matched the Linux run exactly (only latency 
 - [x] Threshold sweep: Prompt Guard at promptwall's false-positive rate
 - [x] Check whether the tokenizer fix changes the ProtectAI results (it does not)
 - [x] ProtectAI with 128-token windows (sensitivity check)
-- [ ] Replace TF-IDF with a small transformer fine-tuned and calibrated on web-page chunks, to lift
-      visible-text and paraphrase recall without ProtectAI's false-positive rate
+- [x] Small transformer (DeBERTa-v3-xsmall) fine-tuned and calibrated on the same chunks: better
+      recall and paraphrase handling, +3 pts page FPR, 30-100× CPU cost; TF-IDF stays default
+- [ ] Transformer: add web boilerplate (ASCII art, menus, template comments) to training negatives
 - [x] Rendered mode (Playwright): computed styles, JS-added text, external CSS (Phase 4)
 - [ ] Rendered mode: shadow DOM, iframes, text injected long after load
 - [ ] PDF/DOCX extraction; HTTP proxy mode
